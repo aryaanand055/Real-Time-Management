@@ -1,0 +1,109 @@
+.main {
+    height: 600px;
+
+}
+
+.left-side {
+    display: flex;
+    height: 100vh;
+    background-color: white;
+    background-image: linear-gradient(to right, rgb(243, 11, 11), rgb(245, 246, 248), rgb(4, 17, 78));
+}
+
+.logo {
+    height: 43vh;
+    width: 50vw;
+}
+
+
+.logo2 {
+    padding-top: 20px;
+    height: 25vh;
+    width: 47vw;
+}
+
+.right-side {
+    height: 100vh;
+}
+
+.input {
+    width: 75%;
+}
+
+.input-box {
+    border-radius: 4px;
+}
+
+.submit {
+    height: 40px;
+    border-radius: 4px;
+    border: solid 2px black;
+    color: white;
+    background: rgb(4, 4, 117);
+}
+@keyframes flash {
+    0% {
+        background: rgb(4, 4, 117);
+    }
+    50% {
+        background: rgb(255, 223, 0); /* Bright flash color */
+    }
+    100% {
+        background: rgb(4, 4, 117);
+    }
+}
+
+.submit {
+    height: 40px;
+    border-radius: 4px;
+    border: solid 2px black;
+    color: white;
+    background: rgb(4, 4, 117);
+    transition: transform 0.2s ease;
+    cursor: pointer; /* Change cursor to pointer */
+}
+
+.submit:active {
+    animation: flash 0.5s; /* Trigger the flash animation */
+}
+@keyframes zigzag {
+    0% {
+        transform: translateX(0) translateY(0);
+    }
+    25% {
+        transform: translateX(10px) translateY(10px);
+    }
+    50% {
+        transform: translateX(-10px) translateY(-10px);
+    }
+    75% {
+        transform: translateX(10px) translateY(10px);
+    }
+    100% {
+        transform: translateX(0) translateY(0);
+    }
+}
+
+.logo {
+    height: 43vh;
+    width: 50vw;
+    animation: zigzag 3s linear infinite; 
+}
+@keyframes zoomInOut {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.logo2 {
+    padding-top: 20px;
+    height: 25vh;
+    width: 47vw;
+    animation: zoomInOut 4s ease-in-out infinite; 
+}
