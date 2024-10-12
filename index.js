@@ -23,7 +23,7 @@ db.connect(err => {
 
 // Sample route
 app.get('/', (req, res) => {
-    res.send('Hello, Attendance Management System!');
+    res.sendFile(path.join(__dirname, 'views', 'index.html'));
 });
 
 // Start the server
