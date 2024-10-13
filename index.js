@@ -11,6 +11,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
+app.set('view engine', 'ejs');
+
+
 // Create MySQL connection
 const db = mysql.createConnection({
     host: 'localhost',
@@ -28,6 +31,20 @@ db.connect(err => {
 // Sample route
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '/views/login.html'));
+});
+
+app.get('/records', (req, res) => {
+    const query = 'SELECT * FROM students';  // Update with your table name
+
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error fetching records:', err);
+            res.send('Error fetching records');
+        } else {
+            // Render the EJS template and pass the fetched data
+            res.render('records', { students: results });
+        }
+    });
 });
 
 // Start the server
