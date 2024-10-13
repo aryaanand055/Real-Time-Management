@@ -47,6 +47,46 @@ app.get('/records', (req, res) => {
     });
 });
 
+app.get('/form1', (req, res) => {
+    //Render the form1.html
+    res.sendFile(path.join(__dirname, '/views/form1.html'));
+});
+
+app.get('/fetch-student/:rollNumber', (req, res) => {
+    const rollNumber = req.params.rollNumber;
+    const query = 'SELECT * FROM students WHERE roll_number = ?';
+
+    db.query(query, [rollNumber], (err, results) => {
+        if (err) return res.status(500).send(err);
+        if (results.length === 0) return res.status(404).send(null);
+        res.json(results[0]);
+    });
+});
+
+app.post('/save-absence', (req, res) => {
+    const rollNumber = req.body.rollNumber;
+    const reason = req.body.reason;
+
+    const query = 'INSERT INTO stud_abs (roll_number, reason) VALUES (?, ?)';
+    db.query(query, [rollNumber, reason], (err) => {
+        if (err) return res.status(500).send(err);
+
+        // Redirecting to homepage after 2 seconds
+        res.send(`<!DOCTYPE html>
+            <html>
+                <head>
+                    <meta http-equiv="refresh" content="2;url=/form1" />
+                    <title>Success</title>
+                </head>
+                <body>
+                    <h1>Absence recorded successfully!</h1>
+                    <p>You will be redirected to the homepage shortly.</p>
+                </body>
+            </html>`);
+    });
+});
+
+
 // Start the server
 const PORT = process.env.PORT || portToUse;
 app.listen(PORT, () => {

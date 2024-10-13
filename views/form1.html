@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Absence Form</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+    <h1>Fetch Student Data and Record Absence</h1>
+
+    <form id="absenceForm" method="POST" action="/record-absence">
+        <label for="rollNumber">Roll Number:</label>
+        <input type="text" id="rollNumber" name="rollNumber" required>
+        <button type="submit">Fetch Student Data</button>
+    </form>
+
+    <div id="studentData" style="display:none;">
+        <h2>Please verify the student information</h2>
+        <p><strong>First Name:</strong> <span id="firstName"></span></p>
+        <p><strong>Last Name:</strong> <span id="lastName"></span></p>
+        <p><strong>Email:</strong> <span id="email"></span></p>
+        <p><strong>Phone Number:</strong> <span id="phoneNumber"></span></p>
+
+        <form id="absenceReasonForm" method="POST" action="/save-absence">
+            <label for="reason">Reason for Absence:</label>
+            <textarea id="reason" name="reason" required></textarea>
+            <input type="hidden" id="rollNumberHidden" name="rollNumber">
+            <button type="submit">Submit Absence</button>
+        </form>
+    </div>
+
+    <script>
+        const form = document.getElementById('absenceForm');
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            const rollNumber = document.getElementById('rollNumber').value;
+
+            // Fetch student data from the server
+            const response = await fetch(`/fetch-student/${rollNumber}`);
+            const student = await response.json();
+
+            if (student) {
+                document.getElementById('firstName').textContent = student.first_name;
+                document.getElementById('lastName').textContent = student.last_name;
+                document.getElementById('email').textContent = student.email;
+                document.getElementById('phoneNumber').textContent = student.phone_number;
+                document.getElementById('rollNumberHidden').value = student.roll_number;
+
+                document.getElementById('studentData').style.display = 'block';
+            } else {
+                alert('Student not found.');
+            }
+        };
+    </script>
+</body>
+
+</html>
