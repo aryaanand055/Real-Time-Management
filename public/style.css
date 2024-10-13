@@ -41,17 +41,17 @@
     color: white;
     background: rgb(4, 4, 117);
 }
-@keyframes flash {
+/* @keyframes flash {
     0% {
         background: rgb(4, 4, 117);
     }
     50% {
-        background: rgb(255, 223, 0); /* Bright flash color */
+        background: rgb(255, 223, 0);
     }
     100% {
         background: rgb(4, 4, 117);
     }
-}
+} */
 
 .submit {
     height: 40px;
@@ -89,17 +89,19 @@
     width: 50vw;
     animation: zigzag 3s linear infinite; 
 }
-@keyframes zoomInOut {
+/* @keyframes zoomInOut {
     0% {
         transform: scale(1);
     }
+
     50% {
         transform: scale(1.2);
     }
+
     100% {
         transform: scale(1);
     }
-}
+} */
 
 .logo2 {
     padding-top: 20px;
