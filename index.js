@@ -34,7 +34,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/records', (req, res) => {
-    const query = 'SELECT * FROM students';  // Update with your table name
+    const query = 'SELECT * FROM student_data';  // Update with your table name
 
     db.query(query, (err, results) => {
         if (err) {
@@ -48,26 +48,30 @@ app.get('/records', (req, res) => {
 });
 
 app.get('/form1', (req, res) => {
-    //Render the form1.html
     res.sendFile(path.join(__dirname, '/views/form1.html'));
 });
 
-app.get('/fetch-student/:rollNumber', (req, res) => {
-    const rollNumber = req.params.rollNumber;
-    const query = 'SELECT * FROM students WHERE roll_number = ?';
+app.get('/fetch-student/:Reg_no', (req, res) => {
+    const regNo = req.params.Reg_no;
+    const query = 'SELECT * FROM student_data WHERE Reg_no = ?';
 
-    db.query(query, [rollNumber], (err, results) => {
-        if (err) return res.status(500).send(err);
-        if (results.length === 0) return res.status(404).send(null);
+    db.query(query, [regNo], (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: err });
+        }
+        if (results.length === 0) {
+            return res.status(404).json({ message: 'Student not found.' });
+        }
         res.json(results[0]);
     });
 });
+
 
 app.post('/save-absence', (req, res) => {
     const rollNumber = req.body.rollNumber;
     const reason = req.body.reason;
 
-    const query = 'INSERT INTO stud_abs (roll_number, reason) VALUES (?, ?)';
+    const query = 'INSERT INTO student_absent_data (Reg_no, reason) VALUES (?, ?)';
     db.query(query, [rollNumber, reason], (err) => {
         if (err) return res.status(500).send(err);
 
