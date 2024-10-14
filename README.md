@@ -20,8 +20,8 @@ This project is a web-based attendance management system designed to track stude
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/) (v14.x or higher)
-- MySQL (or any SQL database)
-- A barcode scanner (optional, or use a simulated browser-based scanner)
+- MySQL
+- A barcode scanner (phone camera/webcam)
 
 ### Steps to Run the Project
 
