@@ -2,9 +2,9 @@ const form = document.getElementById('absenceForm');
 form.onsubmit = async (e) => {
     e.preventDefault();
     const Reg_no = document.getElementById('Reg_no').value;
-
+    console.log(Reg_no)
     try {
-        const response = await fetch(`/fetch-student/${rollNumber}`);
+        const response = await fetch(`/fetch-student/${Reg_no}`);
 
         if (!response.ok) {
             if (response.status === 404) {
@@ -46,7 +46,7 @@ function domReady(fn) {
 
 domReady(function () {
     function onScanSuccess(decodeText, decodeResult) {
-        document.getElementById("rollNumber").value = decodeText;
+        document.getElementById("Reg_no").value = decodeText;
 
         htmlscanner.clear();
         htmlscanner.stop();
