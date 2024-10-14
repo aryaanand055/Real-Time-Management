@@ -27,8 +27,8 @@ This project is a web-based attendance management system designed to track stude
 
 1. **Clone the Repository**
    ```bash
-   git clone <repository-url>
-   cd <repository-folder>
+   git clone https://github.com/aryaanand055/Real-Time-Management.git
+   cd into the folder
 2. **Install the dependencies**
 ```npm install```
 
