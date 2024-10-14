@@ -69,7 +69,7 @@ app.get('/fetch-student/:Reg_no', (req, res) => {
 
 
 app.post('/save-absence', (req, res) => {
-    const rollNumber = req.body.rollNumber;
+    const rollNumber = req.body.Reg_no;
     const reason = req.body.reason;
 
     const query = 'INSERT INTO student_absent_data (Reg_no, reason) VALUES (?, ?)';

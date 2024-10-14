@@ -1,4 +1,5 @@
 const form = document.getElementById('absenceForm');
+console.log
 form.onsubmit = async (e) => {
     e.preventDefault();
     const Reg_no = document.getElementById('Reg_no').value;
@@ -23,7 +24,7 @@ form.onsubmit = async (e) => {
         document.getElementById('mobNo').textContent = student.Mob_no;
         document.getElementById('mailId').textContent = student.Mail_Id;
         document.getElementById('residence').textContent = student.Residence;
-        document.getElementById('Reg_no').value = student.Reg_no;
+        document.getElementById('Reg_no2').value = student.Reg_no;
 
         document.getElementById('studentData').style.display = 'block';
     } catch (err) {
