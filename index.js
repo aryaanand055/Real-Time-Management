@@ -67,43 +67,6 @@ app.get('/fetch-student/:Reg_no', (req, res) => {
     });
 });
 
-
-// app.post('/save-absence', (req, res) => {
-//     const rollNumber = req.body.Reg_no2;
-//     const reason = req.body.reason;
-
-//     const query = 'INSERT INTO student_absent_data (Reg_no, reason) VALUES (?, ?)';
-//     db.query(query, [rollNumber, reason], (err) => {
-//         if (err) return res.status(500).send(err);
-//         const monthAgo = new Date();
-//         monthAgo.setMonth(monthAgo.getMonth() - 1);
-
-//         const q2 = 'SELECT * FROM student_absent_data WHERE Reg_no = ?';
-//         let totalAbsences
-//         db.query(q2, [rollNumber], (err, results) => {
-//             if (err) return res.status(500).send(err);
-//             totalAbsences = results;
-//         })
-
-//         // Redirecting to homepage after 2 seconds
-//         res.send(`<!DOCTYPE html>
-//             <html>
-//                 <head>
-//                     <meta http-equiv="refresh" content="2;url=/form1" />
-//                     <title>Success</title>
-//                 </head>
-//                 <body>
-//                     <h1>Absence recorded successfully!</h1>
-//                     <h2>Total absences is ${totalAbsences}</h2>
-//                     <p>You will be redirected to the homepage shortly.</p>
-//                 </body>
-//             </html>`);
-//     });
-// });
-
-
-// Start the server
-
 app.post('/save-absence', (req, res) => {
     const rollNumber = req.body.Reg_no2;
     const reason = req.body.reason;
