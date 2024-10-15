@@ -1,5 +1,4 @@
 const form = document.getElementById('absenceForm');
-console.log
 form.onsubmit = async (e) => {
     e.preventDefault();
     const Reg_no = document.getElementById('Reg_no').value;
@@ -32,6 +31,7 @@ form.onsubmit = async (e) => {
         alert('An unexpected error occurred.');
     }
 };
+
 let htmlscanner;
 
 function domReady(fn) {
