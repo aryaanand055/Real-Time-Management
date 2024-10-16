@@ -35,11 +35,13 @@ This project is a web-based attendance management system designed to track stude
 3. **Set Up the Database**
 Create a MySQL database for the attendance management system. Use the following SQL commands to create the necessary tables:
 ```
-    CREATE TABLE Student_Data (
+        CREATE TABLE Student_Data (
     Reg_no CHAR(7) PRIMARY KEY,
     Student_name VARCHAR(35) NOT NULL UNIQUE,
     Department CHAR(5) NOT NULL,
     Section CHAR(1) NOT NULL,
+    Gender char(1) not null,
+    DOB date not null,
     Mob_no VARCHAR(15) NOT NULL UNIQUE,
     Mail_Id VARCHAR(40) NOT NULL UNIQUE,
     Residence VARCHAR(15) NOT NULL
