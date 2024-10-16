@@ -7,15 +7,12 @@ const app = express();
 const path = require("path")
 const portToUse = 3000
 
-// Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
 app.set('view engine', 'ejs');
 
-
-// Create MySQL connection
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -23,29 +20,27 @@ const db = mysql.createConnection({
     database: process.env.DB_NAME,
 });
 
-// Connect to the database
 db.connect(err => {
     if (err) throw err;
     console.log('MySQL Connected...');
 });
 
-// Sample route
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '/views/login.html'));
 });
 
 app.get('/records', (req, res) => {
-    const query = 'SELECT * FROM student_data';  // Update with your table name
+    const query = 'SELECT * FROM student_data';  
 
     db.query(query, (err, results) => {
         if (err) {
             console.error('Error fetching records:', err);
             res.send('Error fetching records');
         } else {
-            // Render the EJS template and pass the fetched data
             res.render('records', { students: results });
         }
     });
+    
 });
 
 app.get('/form1', (req, res) => {
@@ -79,14 +74,12 @@ app.post('/save-absence', (req, res) => {
         const monthAgo = new Date();
         monthAgo.setMonth(monthAgo.getMonth() - 1);
 
-        // Query to get total absences for the last month
         const q2 = 'SELECT COUNT(*) as c FROM student_absent_data WHERE Reg_no = ? AND Late_Date >= ?';
         db.query(q2, [rollNumber, monthAgo], (err, results) => {
             if (err) return res.status(500).send(err);
 
-            const totalAbsences = results[0].c; // Get the total count
-
-            // Redirecting to homepage after 2 seconds
+            const totalAbsences = results[0].c; 
+            
             res.send(`<!DOCTYPE html>
                 <html>
                     <head>
