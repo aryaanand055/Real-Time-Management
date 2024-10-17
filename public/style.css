@@ -62,15 +62,13 @@
     background: rgb(4, 4, 117);
     transition: transform 0.2s ease;
     cursor: pointer;
-    /* Change cursor to pointer */
 }
 
 .submit:active {
     animation: flash 0.5s;
-    /* Trigger the flash animation */
 }
 
-@keyframes zigzag {
+/* @keyframes zigzag {
     0% {
         transform: translateX(0) translateY(0);
     }
@@ -90,7 +88,7 @@
     100% {
         transform: translateX(0) translateY(0);
     }
-}
+} */
 
 .logo {
     height: 43vh;

@@ -35,14 +35,13 @@ app.get('/', (req, res) => {
 });
 
 app.get('/records', (req, res) => {
-    const query = 'SELECT * FROM student_data';  // Update with your table name
+    const query = 'SELECT * FROM student_data';
 
     db.query(query, (err, results) => {
         if (err) {
             console.error('Error fetching records:', err);
             res.send('Error fetching records');
         } else {
-            // Render the EJS template and pass the fetched data
             res.render('records', { students: results });
         }
     });
@@ -51,6 +50,11 @@ app.get('/records', (req, res) => {
 app.get('/form1', (req, res) => {
     res.sendFile(path.join(__dirname, '/views/form1.html'));
 });
+app.get('/qrtest', (req, res) => {
+    res.sendFile(path.join(__dirname, '/views/sample.html'));
+});
+
+
 
 app.get('/fetch-student/:Reg_no', (req, res) => {
     const regNo = req.params.Reg_no;
@@ -67,6 +71,7 @@ app.get('/fetch-student/:Reg_no', (req, res) => {
     });
 });
 
+
 app.post('/save-absence', (req, res) => {
     const rollNumber = req.body.Reg_no2;
     const reason = req.body.reason;
@@ -79,26 +84,42 @@ app.post('/save-absence', (req, res) => {
         const monthAgo = new Date();
         monthAgo.setMonth(monthAgo.getMonth() - 1);
 
-        // Query to get total absences for the last month
         const q2 = 'SELECT COUNT(*) as c FROM student_absent_data WHERE Reg_no = ? AND Late_Date >= ?';
         db.query(q2, [rollNumber, monthAgo], (err, results) => {
             if (err) return res.status(500).send(err);
 
-            const totalAbsences = results[0].c; // Get the total count
+            const totalAbsences = results[0].c;
+            let msg;
 
-            // Redirecting to homepage after 2 seconds
-            res.send(`<!DOCTYPE html>
+            const q3 = "select * from student_data where Reg_no = ?"
+            db.query(q3, [rollNumber], (err, results1) => {
+                if (err) return res.status(500).send(err);
+                let name = results1[0].Student_name
+                let dept = results1[0].Department
+                let sect = results1[0].Section
+                if (totalAbsences > 3) {
+                    msg = `Student ${name} from ${dept} ${sect} has exceeded the maximum allowed
+                    absences for the last month. Kindly inform his/her to meet his/her tutor from ${dept} of ${sect}`
+                } else {
+                    msg = `${name} from ${dept} ${sect} has been late for ${totalAbsences} days `
+                }
+
+                res.send(`<!DOCTYPE html>
                 <html>
                     <head>
-                        <meta http-equiv="refresh" content="2;url=/form1" />
                         <title>Success</title>
                     </head>
                     <body>
                         <h1>Absence recorded successfully!</h1>
-                        <h2>Total absences in the past month: ${totalAbsences}</h2>
+                        <h2>${msg}</h2>
+                        <a href="/form1">Go back to home page now</a>
                         <p>You will be redirected to the homepage shortly.</p>
                     </body>
                 </html>`);
+
+            })
+
+
         });
     });
 });

@@ -1,8 +1,10 @@
 const form = document.getElementById('absenceForm');
+let htmlscanner;
+
+
 form.onsubmit = async (e) => {
     e.preventDefault();
     const Reg_no = document.getElementById('Reg_no').value;
-    console.log(Reg_no)
     try {
         const response = await fetch(`/fetch-student/${Reg_no}`);
 
@@ -24,15 +26,14 @@ form.onsubmit = async (e) => {
         document.getElementById('mailId').textContent = student.Mail_Id;
         document.getElementById('residence').textContent = student.Residence;
         document.getElementById('Reg_no2').value = student.Reg_no;
-
         document.getElementById('studentData').style.display = 'block';
+
     } catch (err) {
         console.error('Fetch error:', err);
         alert('An unexpected error occurred.');
     }
 };
 
-let htmlscanner;
 
 function domReady(fn) {
     if (
@@ -55,7 +56,14 @@ domReady(function () {
 
     htmlscanner = new Html5QrcodeScanner(
         "my-qr-reader",
-        { fps: 10, qrbox: { width: 200, height: 200 }, rememberLastUsedCamera: true }
+        {
+            fps: 30, qrbox: { width: 440, height: 440 }, formatsToSupport: [
+                Html5QrcodeSupportedFormats.QR_CODE,
+                Html5QrcodeSupportedFormats.CODE_128,
+                Html5QrcodeSupportedFormats.CODE_39,
+                Html5QrcodeSupportedFormats.EAN_13
+            ], rememberLastUsedCamera: true
+        }
     );
 
     document.getElementById('startScannerButton').onclick = function () {
