@@ -1,6 +1,5 @@
 .main {
     height: 600px;
-
 }
 
 .left-side {
@@ -42,18 +41,6 @@
     background: rgb(4, 4, 117);
 }
 
-/* @keyframes flash {
-    0% {
-        background: rgb(4, 4, 117);
-    }
-    50% {
-        background: rgb(255, 223, 0);
-    }
-    100% {
-        background: rgb(4, 4, 117);
-    }
-} */
-
 .submit {
     height: 40px;
     border-radius: 4px;
@@ -64,71 +51,16 @@
     cursor: pointer;
 }
 
-.submit:active {
-    animation: flash 0.5s;
-}
-
-/* @keyframes zigzag {
-    0% {
-        transform: translateX(0) translateY(0);
-    }
-
-    25% {
-        transform: translateX(10px) translateY(10px);
-    }
-
-    50% {
-        transform: translateX(-10px) translateY(-10px);
-    }
-
-    75% {
-        transform: translateX(10px) translateY(10px);
-    }
-
-    100% {
-        transform: translateX(0) translateY(0);
-    }
-} */
-
 .logo {
     height: 43vh;
     width: 50vw;
-    animation: zigzag 3s linear infinite;
 }
 
-/* @keyframes zoomInOut {
-    0% {
-        transform: scale(1);
-    }
-
-    50% {
-        transform: scale(1.2);
-    }
-
-    100% {
-        transform: scale(1);
-    }
-} */
 
 .logo2 {
     padding-top: 20px;
     height: 25vh;
     width: 47vw;
-    animation: zoomInOut 4s ease-in-out infinite;
-}
-
-#my-qr-reader {
-    display: none;
-    width: 200px;
-    height: 200px;
-    margin: auto;
-    border: 2px solid #000;
-}
-
-.scanner-active {
-    width: 100%;
-    height: 400px;
-    transition: width 0.3s, height 0.3s;
 }
 
 #studentData {
