@@ -1,17 +1,25 @@
-const bodyParser = require('body-parser');
-const mysql = require('mysql2');
-require('dotenv').config();
+//Node.js File to handle the backend
 
-const express = require('express');
-const app = express();
+
+require('dotenv').config();
 const path = require("path")
+
+//Port for viewing on localhost
 const portToUse = 3000
 
+//Express for handling routes
+const express = require('express');
+const app = express();
+app.use(express.static('public'));
+app.set('view engine', 'ejs');
+
+// Body Parser to get the content of the forms
+const bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static('public'));
 
-app.set('view engine', 'ejs');
+//Database Connnection
+const mysql = require('mysql2');
 
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
@@ -30,7 +38,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/records', (req, res) => {
-    const query = 'SELECT * FROM student_data';  
+    const query = 'SELECT * FROM student_data';
 
     db.query(query, (err, results) => {
         if (err) {
@@ -40,17 +48,50 @@ app.get('/records', (req, res) => {
             res.render('records', { students: results });
         }
     });
-    
+
 });
 
 app.get('/form1', (req, res) => {
     res.sendFile(path.join(__dirname, '/views/form1.html'));
 });
-app.get('/qrtest', (req, res) => {
-    res.sendFile(path.join(__dirname, '/views/sample.html'));
+
+app.get("/records/:Dept/:Class/:Sec", (req, res) => {
+    const params = [req.params.Dept, req.params.Class, req.params.Sec];
+    const query = "SELECT * FROM student_absent_data a,student_data b WHERE a.Reg_no = b.Reg_no and Department = ? AND YearOfStudy = ? AND Section = ?";
+    db.query(query, params, (err, results) => {
+        if (err) {
+            console.error('Error fetching records:', err);
+            res.send('Error fetching records');
+        }
+
+        const groupedStudents = results.reduce((acc, student) => {
+            if (!acc[student.Reg_no]) {
+                acc[student.Reg_no] = {
+                    studentInfo: {
+                        Reg_no: student.Reg_no,
+                        Student_name: student.Student_name,
+                        Mob_no: student.Mob_no,
+                        Mail_Id: student.Mail_Id
+                    },
+                    countLate: 0,
+                    records: []
+                };
+            }
+            acc[student.Reg_no].countLate++;
+            acc[student.Reg_no].records.push({
+                Late_Date: new Date(student.Late_Date).toLocaleDateString("en-GB"),
+                Late_Time: new Date(student.Late_Date).toLocaleTimeString("en-GB", { hour: '2-digit', minute: '2-digit' }),
+                Reason: student.Reason
+            });
+            return acc;
+        }, {});
+
+        // Converting the object to an array for easier iteration
+        const resultArray = Object.values(groupedStudents);
+
+        res.render('recordsPerClass', { students: resultArray, urlPar: params });
+    })
 });
-
-
 
 app.get('/fetch-student/:Reg_no', (req, res) => {
     const regNo = req.params.Reg_no;
@@ -66,7 +107,6 @@ app.get('/fetch-student/:Reg_no', (req, res) => {
         res.json(results[0]);
     });
 });
-
 
 app.post('/save-absence', (req, res) => {
     const rollNumber = req.body.Reg_no2;
@@ -109,8 +149,7 @@ app.post('/save-absence', (req, res) => {
                     <body>
                         <h1>Absence recorded successfully!</h1>
                         <h2>${msg}</h2>
-                        <a href="/form1">Go back to home page now</a>
-                        <p>You will be redirected to the homepage shortly.</p>
+                        <a href="/form1" class="btn btn-primary">Go back to home page now</a>
                     </body>
                 </html>`);
 
@@ -121,8 +160,7 @@ app.post('/save-absence', (req, res) => {
     });
 });
 
-
 const PORT = process.env.PORT || portToUse;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
-});
+})

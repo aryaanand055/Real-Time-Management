@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Records</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+
+<body>
+    <% function getOrdinal(num) { const suffixes=["st" , "nd" , "rd" , "th" ,"th" ];return num+ suffixes[num -1]} %>
+
+        <div class="container mt-5">
+            <h2 class="mb-4">Student Records - <%= getOrdinal(urlPar[1]) %> Year <%= urlPar[0] %>
+                        <%= urlPar[2] %>
+            </h2>
+
+
+            <% if (students && students.length> 0) { %>
+                <table class="table table-striped">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th scope="col">Reg No</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Mobile</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Times Late</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (students.length> 0) { %>
+
+
+                            <% students.forEach(student=> { %>
+                                <tr class="clickable-row" data-toggle="collapse"
+                                    data-target="#details-<%= student.studentInfo.Reg_no %>">
+                                    <td>
+                                        <%= student.studentInfo.Reg_no %>
+                                    </td>
+                                    <td>
+                                        <%= student.studentInfo.Student_name %>
+                                    </td>
+                                    <td>
+                                        <a href="tel:<%= student.studentInfo.Mob_no %>">
+                                            <%= student.studentInfo.Mob_no %>
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a href="mailto:<%= student.studentInfo.Mail_Id %>">
+                                            <%= student.studentInfo.Mail_Id %>
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <%= student.countLate %>
+                                    </td>
+                                </tr>
+                                <tr id=" details-<%=student.studentInfo.Reg_no %>" class="details">
+                                    <td colspan="5">
+                                        <h5>Details of late attendance</h5>
+                                        <table class="table table-bordered">
+
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Time</th>
+                                                    <th>Reason</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <% student.records.forEach(record=> { %>
+                                                    <tr>
+                                                        <td>
+                                                            <%= record.Late_Date %>
+                                                        </td>
+                                                        <td>
+                                                            <%= record.Late_Time %>
+                                                        </td>
+                                                        <td>
+                                                            <%= record.Reason %>
+                                                        </td>
+                                                    </tr>
+                                                    <% }) %>
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <% }) %>
+                                    <% } else { %>
+                                        No records found for this class and section.
+                                        <% } %>
+
+                    </tbody>
+                </table>
+                <% } else { %>
+                    <p class="text-danger">No records found for this class and section.</p>
+                    <% } %>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const clickableRows = document.querySelectorAll('.clickable-row');
+                clickableRows.forEach(function (row) {
+                    row.addEventListener('click', function () {
+                        const detailsRow = this.nextElementSibling;
+                        if (detailsRow) {
+                            // Displays table-row if cuurently none and vice verca
+                            detailsRow.style.display = detailsRow.style.display === 'table-row' ? 'none' : 'table-row';
+                        }
+                    });
+                });
+            });
+        </script>
+
+</body>
+
+</html>
