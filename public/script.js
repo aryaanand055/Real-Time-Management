@@ -25,6 +25,8 @@ form.onsubmit = async (e) => {
         document.getElementById('residence').textContent = student.Residence;
         document.getElementById('Reg_no2').value = student.Reg_no;
         document.getElementById('studentData').style.display = 'block';
+        const box = document.querySelector('#barcodeCont');
+        box.style.display = 'none';
 
     } catch (err) {
         console.error('Fetch error:', err);
@@ -37,7 +39,7 @@ QuaggaInit = function () {
         inputStream: {
             name: "Live",
             type: "LiveStream",
-            target: document.querySelector('#yourElement'),
+            target: document.querySelector('#barcodeCont'),
             constraints: {
                 width: 1920,
                 height: 1080,
@@ -69,10 +71,10 @@ QuaggaInit()
 
 Quagga.onDetected(function (result) {
     const code = result.codeResult.code;
-    const box = document.querySelector('#yourElement');
+    const box = document.querySelector('#barcodeCont');
+    box.style.display = 'none';
     document.getElementById('Reg_no').value = code;
     Quagga.stop();
-    box.style.display = 'none';
     form.onsubmit(new Event('submit'));
     document.getElementById('reason').focus();
 });
@@ -82,7 +84,7 @@ window.addEventListener('beforeunload', function () {
 });
 
 window.addEventListener("DOMContentLoaded", () => {
-    const video = document.querySelector('#yourElement video');
+    const video = document.querySelector('#barcodeCont video');
     if (video) {
         video.style.width = '100%';
         video.style.height = 'auto';
@@ -92,7 +94,7 @@ window.addEventListener("DOMContentLoaded", () => {
 function resetUI() {
     document.getElementById('Reg_no').value = '';
     document.getElementById('studentData').style.display = 'none';
-    document.getElementById('yourElement').style.display = 'block';
+    document.getElementById('barcodeCont').style.display = 'block';
 }
 
 document.getElementById('restartScan').addEventListener('click', restartScanner);

@@ -57,15 +57,11 @@ app.get('/form1', (req, res) => {
 
 app.get("/records/:Dept/:Class/:Sec", (req, res) => {
     const params = [req.params.Dept, req.params.Class, req.params.Sec];
-    console.log(params)
     const query = "SELECT * FROM student_absent_data a,student_data b WHERE a.Reg_no = b.Reg_no and Department = ? AND YearOfStudy = ? AND Section = ?";
     db.query(query, params, (err, results) => {
         if (err) {
             console.error('Error fetching records:', err);
             res.send('Error fetching records');
-        }
-        if (results.length === 0) {
-            res.send('No records found');
         }
 
         const groupedStudents = results.reduce((acc, student) => {
@@ -93,7 +89,7 @@ app.get("/records/:Dept/:Class/:Sec", (req, res) => {
         // Converting the object to an array for easier iteration
         const resultArray = Object.values(groupedStudents);
 
-        res.render('recordsPerClass', { students: resultArray });
+        res.render('recordsPerClass', { students: resultArray, urlPar: params });
     })
 });
 
