@@ -39,6 +39,7 @@ Create a MySQL database for the attendance management system. Use the following 
     Reg_no CHAR(7) PRIMARY KEY,
     Student_name VARCHAR(35) NOT NULL UNIQUE,
     Department CHAR(5) NOT NULL,
+    YearOfStudy INT NOT NULL,
     Section CHAR(1) NOT NULL,
     Gender char(1) not null,
     DOB date not null,
