@@ -9,8 +9,6 @@
     background-image: linear-gradient(to left , rgb(243, 11, 11), rgb(245, 246, 248), rgb(4, 17, 78));
     
 }
-
-<<<<<<< HEAD:views/public/style.css
 .logo {
     height: 43vh;
     width: 50vw;
@@ -22,9 +20,6 @@
     height: 25vh;
     width: 53vw;
 }
-
-=======
->>>>>>> a3c03c1e49e55eb2b59f53bf34cd091f4d59506b:public/style.css
 .right-side {
     height: 100vh;
 }
