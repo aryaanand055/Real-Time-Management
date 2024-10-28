@@ -13,7 +13,6 @@
 </head>
 
 <body>
-<<<<<<< HEAD
     <h1 class="m-5 head d-flex justify-content-lg-start">Fetch Student Data And Absence</h1>
     <div class="container-fluid">
         <form id="absenceForm" method="POST" action="/record-absence" class="d-flex justify-content-start">
@@ -22,10 +21,12 @@
                     <div class="col-lg-6 col-md-12 col-sm-12 py-5 p-1">
                         <div class="col-12">
                             <label for="Reg_no" class="fs-5 fw-5">Registration Number:</label>
-                            <input type="text" id="Reg_no" name="Reg_no" required title="Input" class="form-control rounded-1">
+                            <input type="text" id="Reg_no" name="Reg_no" required title="Input"
+                                class="form-control rounded-1">
                         </div>
                         <div class="col-12 mt-4">
-                            <button type="submit" class="submit-btn" onclick="toggleTextArea()">Fetch Student Data</button>
+                            <button type="submit" class="submit-btn" onclick="toggleTextArea()">Fetch Student
+                                Data</button>
                         </div>
                     </div>
 
@@ -35,119 +36,78 @@
                         <div id="result"></div>
                     </div>
                 </div>
-=======
-    <h1 class="m-5"><span class="text-danger text-center">Fetch Student Data </span><span
-            class="text-secondary"></span>and
-        </span><span class="text-primary">Absence</span></h1>
-    <div class="container-fluid container">
+               
 
-        <form id="absenceForm" method="POST">
-            <div class="form-group">
-                <label for="Reg_no">Registration Number:</label>
-                <div class="input-group mb-3">
-                    <input type="text" id="Reg_no" name="Reg_no" required title="Input" class="form-control w-75"
-                        placeholder="Ex: T24Z121">
-                    <button type="submit" class="btn btn-outline-primary w-25">Verify</button>
+                <hr>
+                <div id="studentData" class="ps-2">
+                    <h2 class="head1">Please verify the student information</h2>
+                    <p class="pt-4"><strong>Student Name</strong> <span id="studentName" class="ps-4 ms-">:</span>
+                    </p>
+                    <p><strong>Department</strong> <span id="department" class="ps-3 ms-4"> :</span></p>
+                    <p><strong class="me-1">Section </strong> <span id="section" class="ps-5 ms-4"> :</span></p>
+                    <p><strong>Mobile Number</strong> <span id="mobNo" class="ps-3">:</span></p>
+                    <p><strong>Email</strong> <span id="mailId" class="ps-5 ms-5"> :</span></p>
+                    <p><strong>Residence</strong> <span id="residence" class="ps-5 ms-3">:</span></p>
+
+                    <form id="absenceReasonForm" method="POST" action="/save-absence">
+                        <label for="reason" class="fw-bold">Reason for Absence:</label>
+                        <textarea id="reason" name="reason" required class="text-box mt-2 w-100"></textarea>
+                        <input type="text" id="Reg_no2" name="Reg_no2" placeholder="Registration Number"
+                            style="display: none;">
+                        <button type="submit" class="submit-btn2 mt-5">Submit Absence</button>
+                    </form>
                 </div>
-                <button type="button" id="restartScan" class="btn btn-secondary w-75 mx-5">
-                    <i class="bi bi-qr-code-scan"></i> Reset and Scan Barcode
-                </button>
-                <div id="barcodeCont"></div>
->>>>>>> a3c03c1e49e55eb2b59f53bf34cd091f4d59506b
             </div>
-        </form>
-    </div>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+            <script>
+                Quagga.init({
+                    inputStream: {
+                        name: "Live",
+                        type: "LiveStream",
+                        target: document.querySelector('#yourElement'),
+                        constraints: {
+                            width: 270,
+                            height: 270,
+                            facingMode: "environment",
+                        },
+                        area: {
+                            top: "10%",
+                            right: "10%",
+                            left: "10%",
+                            bottom: "10%"
+                        },
+                        singleChannel: false
+                    },
+                    decoder: {
+                        readers: ["code_128_reader"]
+                    }
+                }, function (err) {
+                    if (err) {
+                        console.error(err);
+                        return;
+                    }
+                    Quagga.start();
+                });
 
-<<<<<<< HEAD
-    <hr>
-    <div id="studentData" class="ps-2">
-        <h2 class="head1">Please verify the student information</h2>
-        <p class="pt-4"><strong>Student Name</strong> <span id="studentName" class="ps-4 ms-">:</span></p>
-        <p><strong>Department</strong> <span id="department" class="ps-3 ms-4"> :</span></p>
-        <p><strong class="me-1">Section </strong> <span id="section" class="ps-5 ms-4"> :</span></p>
-        <p><strong>Mobile Number</strong> <span id="mobNo" class="ps-3">:</span></p>
-        <p><strong>Email</strong> <span id="mailId" class="ps-5 ms-5"> :</span></p>
-        <p><strong>Residence</strong> <span id="residence" class="ps-5 ms-3">:</span></p>
+                Quagga.onDetected(function (result) {
+                    const code = result.codeResult.code;
+                    console.log("Barcode detected:", code);
+                    alert(code)
+                    document.getElementById('Reg_no').innerText = code;
+                    Quagga.stop();
+                });
 
-        <form id="absenceReasonForm" method="POST" action="/save-absence">
-            <label for="reason" class="fw-bold">Reason for Absence:</label>
-            <textarea id="reason" name="reason" required class="text-box mt-2 w-100"></textarea>
-            <input type="text" id="Reg_no2" name="Reg_no2" placeholder="Registration Number" style="display: none;">
-            <button type="submit" class="submit-btn mt-5">Submit Absence</button>
-        </form>
-    </div>
-=======
-        <div id="studentData" class="border-1 m-2 p-2">
-            <h2>Please verify the student information</h2>
-            <p><strong>Student Name:</strong> <span id="studentName"></span></p>
-            <p><strong>Department:</strong> <span id="department"></span></p>
-            <p><strong>Section:</strong> <span id="section"></span></p>
-            <p><strong>Mobile Number:</strong> <span id="mobNo"></span></p>
-            <p><strong>Email:</strong> <span id="mailId"></span></p>
-            <p><strong>Residence:</strong> <span id="residence"></span></p>
+                window.addEventListener('beforeunload', function () {
+                    Quagga.stop();
+                });
 
-            <form id="absenceReasonForm" method="POST" action="/save-absence">
-                <label for="reason"><strong>Reason for Absence:</strong></label>
-                <input type="text" id="reason" name="reason" required></input>
-                <input type="text" id="Reg_no2" name="Reg_no2" placeholder="Registration Number">
-                <button type="submit" class="btn btn-primary mt-3">Submit Absence</button>
-            </form>
-        </div>
->>>>>>> a3c03c1e49e55eb2b59f53bf34cd091f4d59506b
-    </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
-<<<<<<< HEAD
-    <script>
-        Quagga.init({
-            inputStream: {
-                name: "Live",
-                type: "LiveStream",
-                target: document.querySelector('#yourElement'),
-                constraints: {
-                    width: 270,
-                    height: 270,
-                    facingMode: "environment",
-                },
-                area: {
-                    top: "10%",
-                    right: "10%",
-                    left: "10%",
-                    bottom: "10%"
-                },
-                singleChannel: false
-            },
-            decoder: {
-                readers: ["code_128_reader"]
-            }
-        }, function (err) {
-            if (err) {
-                console.error(err);
-                return;
-            }
-            Quagga.start();
-        });
+                function toggleTextArea() {
+                    const absenceReasonForm = document.getElementById('reason');
+                    absenceReasonForm.style.display = absenceReasonForm.style.display === 'none' ? 'block' : 'none';
+                }
+            </script>
+            <script src="script.js"></script>
 
-        Quagga.onDetected(function (result) {
-            const code = result.codeResult.code;
-            console.log("Barcode detected:", code);
-            alert(code)
-            document.getElementById('Reg_no').innerText = code;
-            Quagga.stop();
-        });
-
-        window.addEventListener('beforeunload', function () {
-            Quagga.stop();
-        });
-
-        function toggleTextArea() {
-            const absenceReasonForm = document.getElementById('reason');
-            absenceReasonForm.style.display = absenceReasonForm.style.display === 'none' ? 'block' : 'none';
-        }
-    </script>
-
-=======
-    <script src="script.js"></script>
->>>>>>> a3c03c1e49e55eb2b59f53bf34cd091f4d59506b
 </body>
 
 </html>

@@ -5,7 +5,7 @@
     }
 }
 :root {
-    --blue: #0e1e7a;
+    --blue: #50574f;
     --black: #0f0c0c;
   }
 
@@ -52,7 +52,7 @@
     background-color: var(--blue);
 }
 .submit-btn:hover{
-    background-color: #2f41a7;
+    background-color: #7d817c;
 }
 .head1{
     text-decoration: wavy ;
@@ -66,4 +66,15 @@
     border: solid black 2px;
     height: auto;
     border-radius: 4px;
+}
+.submit-btn2{
+    width: 260px;
+    height: 55px;
+    color: white;
+    border-radius: 4px;
+    border: var(--black) solid 2px;
+    background-color: var(--blue);
+}
+.submit-btn2:hover{
+    background-color: #7d817c;
 }
