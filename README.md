@@ -48,7 +48,7 @@ CREATE TABLE Student_Data (
     Residence VARCHAR(15) NOT NULL
 );
 
-CREATE TABLE Student_Absent (
+CREATE TABLE Student_Absent_Data (
     Reg_no CHAR(7),
     Reason VARCHAR(58) NOT NULL,
     Late_Date DATETIME DEFAULT CURRENT_TIMESTAMP,
