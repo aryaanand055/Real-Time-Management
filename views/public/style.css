@@ -6,7 +6,8 @@
     display: flex;
     height: 100vh;
     background-color: white;
-    background-image: linear-gradient(to right, rgb(243, 11, 11), rgb(245, 246, 248), rgb(4, 17, 78));
+    background-image: linear-gradient(to left , rgb(243, 11, 11), rgb(245, 246, 248), rgb(4, 17, 78));
+    
 }
 
 .logo {
@@ -18,7 +19,7 @@
 .logo2 {
     padding-top: 20px;
     height: 25vh;
-    width: 47vw;
+    width: 53vw;
 }
 
 .right-side {
