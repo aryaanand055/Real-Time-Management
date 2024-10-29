@@ -10,6 +10,7 @@
     
 }
 
+<<<<<<< HEAD:views/public/style.css
 .logo {
     height: 43vh;
     width: 50vw;
@@ -22,6 +23,8 @@
     width: 53vw;
 }
 
+=======
+>>>>>>> a3c03c1e49e55eb2b59f53bf34cd091f4d59506b:public/style.css
 .right-side {
     height: 100vh;
 }
@@ -32,14 +35,6 @@
 
 .input-box {
     border-radius: 4px;
-}
-
-.submit {
-    height: 40px;
-    border-radius: 4px;
-    border: solid 2px black;
-    color: white;
-    background: rgb(4, 4, 117);
 }
 
 .submit {
@@ -66,4 +61,36 @@
 
 #studentData {
     display: none;
+}
+
+#Reg_no2 {
+    display: none;
+}
+
+
+#cont1 canvas {
+    display: none;
+}
+
+
+#cont1 {
+    border: 1px solid #000;
+    width: 75%;
+    max-width: 100%;
+    margin: auto;
+    margin-top: 1rem;
+    height: auto;
+    padding: 0;
+}
+
+#Reg_no2 {
+    display: none;
+}
+
+.details {
+    display: none;
+}
+
+.clickable-row{
+    cursor: pointer;
 }

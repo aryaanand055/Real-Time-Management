@@ -39,6 +39,7 @@ CREATE TABLE Student_Data (
     Reg_no CHAR(7) PRIMARY KEY,
     Student_name VARCHAR(35) NOT NULL UNIQUE,
     Department CHAR(5) NOT NULL,
+    YearOfStudy INT NOT NULL,
     Section CHAR(1) NOT NULL,
     Gender char(1) not null,
     DOB date not null,
@@ -47,7 +48,7 @@ CREATE TABLE Student_Data (
     Residence VARCHAR(15) NOT NULL
 );
 
-CREATE TABLE Student_Absent (
+CREATE TABLE Student_Absent_Data (
     Reg_no CHAR(7),
     Reason VARCHAR(58) NOT NULL,
     Late_Date DATETIME DEFAULT CURRENT_TIMESTAMP,

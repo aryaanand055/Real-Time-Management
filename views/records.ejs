@@ -26,6 +26,7 @@
                     <th scope="col">Name</th>
                     <th scope="col">Department</th>
                     <th scope="col">Section</th>
+                    <th scope="col">Year of Study</th>
                     <th scope="col" title="yyyy-mm-dd" data-toggle="tooltip" data-placement="top">DOB</th>
                     <th scope="col">Phone Number</th>
                     <th scope="col">Email</th>
@@ -47,6 +48,9 @@
                         </td>
                         <td>
                             <%= student.Section %>
+                        </td>
+                        <td>
+                            <%= student.YearOfStudy %>
                         </td>
                         <td>
                             <%= new Date(student.DOB).toLocaleDateString('en-CA') %>

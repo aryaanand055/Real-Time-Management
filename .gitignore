@@ -22,3 +22,5 @@ build
 .idea/
 *.sublime-project
 *.sublime-workspace
+
+toadd.txt

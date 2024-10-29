@@ -13,6 +13,7 @@
 </head>
 
 <body>
+<<<<<<< HEAD
     <h1 class="m-5 head d-flex justify-content-lg-start">Fetch Student Data And Absence</h1>
     <div class="container-fluid">
         <form id="absenceForm" method="POST" action="/record-absence" class="d-flex justify-content-start">
@@ -34,10 +35,30 @@
                         <div id="result"></div>
                     </div>
                 </div>
+=======
+    <h1 class="m-5"><span class="text-danger text-center">Fetch Student Data </span><span
+            class="text-secondary"></span>and
+        </span><span class="text-primary">Absence</span></h1>
+    <div class="container-fluid container">
+
+        <form id="absenceForm" method="POST">
+            <div class="form-group">
+                <label for="Reg_no">Registration Number:</label>
+                <div class="input-group mb-3">
+                    <input type="text" id="Reg_no" name="Reg_no" required title="Input" class="form-control w-75"
+                        placeholder="Ex: T24Z121">
+                    <button type="submit" class="btn btn-outline-primary w-25">Verify</button>
+                </div>
+                <button type="button" id="restartScan" class="btn btn-secondary w-75 mx-5">
+                    <i class="bi bi-qr-code-scan"></i> Reset and Scan Barcode
+                </button>
+                <div id="barcodeCont"></div>
+>>>>>>> a3c03c1e49e55eb2b59f53bf34cd091f4d59506b
             </div>
         </form>
     </div>
 
+<<<<<<< HEAD
     <hr>
     <div id="studentData" class="ps-2">
         <h2 class="head1">Please verify the student information</h2>
@@ -55,11 +76,27 @@
             <button type="submit" class="submit-btn mt-5">Submit Absence</button>
         </form>
     </div>
+=======
+        <div id="studentData" class="border-1 m-2 p-2">
+            <h2>Please verify the student information</h2>
+            <p><strong>Student Name:</strong> <span id="studentName"></span></p>
+            <p><strong>Department:</strong> <span id="department"></span></p>
+            <p><strong>Section:</strong> <span id="section"></span></p>
+            <p><strong>Mobile Number:</strong> <span id="mobNo"></span></p>
+            <p><strong>Email:</strong> <span id="mailId"></span></p>
+            <p><strong>Residence:</strong> <span id="residence"></span></p>
+
+            <form id="absenceReasonForm" method="POST" action="/save-absence">
+                <label for="reason"><strong>Reason for Absence:</strong></label>
+                <input type="text" id="reason" name="reason" required></input>
+                <input type="text" id="Reg_no2" name="Reg_no2" placeholder="Registration Number">
+                <button type="submit" class="btn btn-primary mt-3">Submit Absence</button>
+            </form>
+        </div>
+>>>>>>> a3c03c1e49e55eb2b59f53bf34cd091f4d59506b
     </div>
-
-    <script src="script.js"></script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+<<<<<<< HEAD
     <script>
         Quagga.init({
             inputStream: {
@@ -108,6 +145,9 @@
         }
     </script>
 
+=======
+    <script src="script.js"></script>
+>>>>>>> a3c03c1e49e55eb2b59f53bf34cd091f4d59506b
 </body>
 
 </html>
