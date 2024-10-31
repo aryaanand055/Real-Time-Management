@@ -122,10 +122,10 @@ app.get('/', (req, res) => {
 });
 app.get('/login', checkIfLoggedIn, (req, res) => {
     if (req.isLoggedIn) {
-        const redirectUrl = req.body.redirect || '/';
+        const redirectUrl = req.query.redirect || '/';
         return res.redirect(redirectUrl);
     } else {
-        res.render("login", { title: "Login", redirectUrl: req.body.redirect || '/' });
+        res.render("login", { title: "Login", redirectUrl: req.query.redirect || '/' });
     }
 });
 
@@ -133,7 +133,7 @@ app.post("/login", (req, res) => {
     const Reg_No = req.body.Reg_No;
     const password = req.body.password;
     const query = "SELECT * FROM staff_data WHERE Reg_No = ?";
-
+    const redirectUrl = req.body.redirect || '/records'
     db.query(query, [Reg_No], (err, result) => {
         if (err) {
             return res.send(`Authentication Unsuccessful. Error: ${err}`);
@@ -144,8 +144,6 @@ app.post("/login", (req, res) => {
         if (password === result[0].Password) {
             const token = jwt.sign({ Reg_No: result[0].Reg_No, Access_Role: result[0].Access_Roll }, process.env.JWT_SECRET, { expiresIn: '1h' });
             res.cookie('logintoken', token, { httpOnly: true, secure: false, sameSite: 'Strict' });
-
-            const redirectUrl = req.body.redirect || '/records';
             return res.redirect(redirectUrl);
         } else {
             return res.send("Incorrect Password");

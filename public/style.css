@@ -6,9 +6,10 @@
     display: flex;
     height: 100vh;
     background-color: white;
-    background-image: linear-gradient(to left , rgb(243, 11, 11), rgb(245, 246, 248), rgb(4, 17, 78));
-    
+    background-image: linear-gradient(to left, rgb(243, 11, 11), rgb(245, 246, 248), rgb(4, 17, 78));
+
 }
+
 .logo {
     height: 43vh;
     width: 50vw;
@@ -20,6 +21,7 @@
     height: 25vh;
     width: 53vw;
 }
+
 .right-side {
     height: 100vh;
 }
@@ -90,6 +92,10 @@
     cursor: pointer;
 }
 
-.table_link{
+.table_link {
     cursor: pointer;
+}
+
+h1 {
+    color: red
 }
