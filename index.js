@@ -150,6 +150,12 @@ app.post("/login", (req, res) => {
     });
 });
 
+app.get('/logout', (req, res) => {
+    res.clearCookie('logintoken', { httpOnly: true, secure: false, sameSite: 'Strict' });
+    res.redirect('/login?msg=' + encodeURIComponent("You have been logged out successfully"));
+});
+
+
 app.get('/records', authenticateJWT([2, 3]), (req, res) => {
     const query = 'SELECT * FROM student_data';
 
@@ -168,55 +174,114 @@ app.get('/lateAbsenceForm', authenticateJWT([2, 3]), (req, res) => {
     res.render("lateAbsenceForm", { title: "Late Attendance Form" })
 });
 
-app.get("/records/:Dept/:Class/:Sec", authenticateJWT([2, 3]), (req, res) => {
-    const params = [req.params.Dept, req.params.Class, req.params.Sec];
-    const query = "SELECT * FROM student_absent_data a,student_data b WHERE a.Reg_no = b.Reg_no and Department = ? AND YearOfStudy = ? AND Section = ?";
-    db.query(query, params, (err, results) => {
+app.get("/class", authenticateJWT([2, 3]), (req, res) => {
+    const userRegNo = req.user.Reg_No;
+
+    const query = "SELECT * FROM staff_data WHERE Reg_No = ?";
+    db.query(query, [userRegNo], (err, result) => {
         if (err) {
             console.error('Error fetching records:', err);
             res.send('Error fetching records');
+        } else if (result.length === 0) {
+            res.send('No records found for the user.');
+        } else {
+            let dept = result[0].Department;
+            let class1 = result[0].YearOfClass
+            let section = result[0].Section
+
+            res.redirect(`/records/${dept}/${class1}/${section}`)
         }
-
-        const groupedStudents = results.reduce((acc, student) => {
-            if (!acc[student.Reg_no]) {
-                acc[student.Reg_no] = {
-                    studentInfo: {
-                        Reg_no: student.Reg_no,
-                        Student_name: student.Student_name,
-                        Mob_no: student.Mob_no,
-                        Mail_Id: student.Mail_Id
-                    },
-                    countLate: 0,
-                    records: []
-                };
-            }
-            acc[student.Reg_no].countLate++;
-            acc[student.Reg_no].records.push({
-                Late_Date: new Date(student.Late_Date).toLocaleDateString("en-GB"),
-                Late_Time: new Date(student.Late_Date).toLocaleTimeString("en-GB", { hour: '2-digit', minute: '2-digit' }),
-                Reason: student.Reason
-            });
-            return acc;
-        }, {});
-
-        // Converting the object to an array for easier iteration
-        const resultArray = Object.values(groupedStudents);
-        title = `${params[0]} - ${params[1]}${params[2]}`
-        res.render('recordsPerClass', { students: resultArray, urlPar: params, title: title });
-    })
+    });
 });
-app.get("/records/:Dept", authenticateJWT([3]), (req, res) => {
-    let dept = req.params.Dept
-    const query = "SELECT YearOfStudy, Section, COUNT(*) as AbsenceCount FROM student_absent_data a, student_data b WHERE a.Reg_no = b.Reg_no and Department = ? group by YearOfStudy , Section;";
-    db.query(query, dept, (err, result) => {
+
+app.get("/records/dept", authenticateJWT([3]), (req, res) => {
+    const userRegNo = req.user.Reg_No;
+
+    const query = "SELECT * FROM staff_data WHERE Reg_No = ?";
+    db.query(query, [userRegNo], (err, result) => {
         if (err) {
             console.error('Error fetching records:', err);
             res.send('Error fetching records');
-        }
-        dept = dept.toUpperCase()
-        res.render("recordsPerDept", { data: result, deptName: dept, title: `Records for Department - ${dept}` });
+        } else if (result.length === 0) {
+            res.send('No records found for the user.');
+        } else {
+            let dept = result[0].Department;
+            const query = "SELECT YearOfStudy, Section, COUNT(*) as AbsenceCount FROM student_absent_data a, student_data b WHERE a.Reg_no = b.Reg_no and Department = ? group by YearOfStudy , Section;";
+            db.query(query, dept, (err, result) => {
+                if (err) {
+                    console.error('Error fetching records:', err);
+                    res.send('Error fetching records');
+                }
+                dept = dept.toUpperCase()
+                res.render("recordsPerDept", { data: result, deptName: dept, title: `Records for Department - ${dept}` });
 
-    })
+            })
+        }
+    });
+});
+
+
+app.get("/records/:Dept/:Class/:Sec", authenticateJWT([2, 3]), (req, res) => {
+    const userRegNo = req.user.Reg_No;
+
+    const query0 = "SELECT * FROM staff_data WHERE Reg_No = ?";
+    db.query(query0, [userRegNo], (err, result) => {
+        if (err) {
+            console.error('Error fetching records:', err);
+            return res.send('Error fetching records');
+        }
+
+        if (result.length === 0) {
+            return res.send('No records found for the user.');
+        }
+
+        let aDept = result[0].Department;
+        let aClass = result[0].YearOfClass
+        let aSection = result[0].Section
+        let aRole = result[0].Access_Role
+
+        const { Dept, Class, Sec } = req.params;
+
+        const hasAccess = (aRole === 3 && aDept.toLowerCase() === Dept.toLowerCase()) || (aRole === 2 && aDept.toLowerCase() === Dept.toLowerCase() && String(aClass) === String(Class) && aSection.toLowerCase() === Sec.toLowerCase());
+        if (!hasAccess) {
+            return res.send(`You do not have access to this data. Your current data is Dept: ${aDept}, class: ${aClass}, section: ${aSection}, role: ${aRole}`);
+        }
+
+        const query = `
+            SELECT * FROM student_absent_data a JOIN student_data b ON a.Reg_no = b.Reg_no WHERE Department = ? AND YearOfStudy = ? AND Section = ?
+        `;
+        db.query(query, [Dept, Class, Sec], (err, results) => {
+            if (err) {
+                console.error('Error fetching records:', err);
+                return res.send('Error fetching records');
+            }
+
+            const groupedStudents = results.reduce((acc, student) => {
+                if (!acc[student.Reg_no]) {
+                    acc[student.Reg_no] = {
+                        studentInfo: {
+                            Reg_no: student.Reg_no,
+                            Student_name: student.Student_name,
+                            Mob_no: student.Mob_no,
+                            Mail_Id: student.Mail_Id
+                        },
+                        countLate: 0,
+                        records: []
+                    };
+                }
+                acc[student.Reg_no].countLate++;
+                acc[student.Reg_no].records.push({
+                    Late_Date: new Date(student.Late_Date).toLocaleDateString("en-GB"),
+                    Late_Time: new Date(student.Late_Date).toLocaleTimeString("en-GB", { hour: '2-digit', minute: '2-digit' }),
+                    Reason: student.Reason
+                });
+                return acc;
+            }, {});
+            const resultArray = Object.values(groupedStudents);
+            const title = `${Dept} - ${Class}${Sec}`;
+            res.render('recordsPerClass', { students: resultArray, urlPar: [Dept, Class, Sec], title });
+        });
+    });
 });
 
 
