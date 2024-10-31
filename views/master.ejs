@@ -1,5 +1,14 @@
 <%- include('partials/header', { title: title }) %>
 
-    <%- body %>
+<% if (typeof msg !== 'undefined') { %>
+<div class="alert alert-info alert-dismissible fade show w-25 ml-auto mr-auto mb-auto mt-2 fixed-top" role="alert">
+  <span class="fw-bold"><%= msg %></span>
+  <button type="button" class="close" data-bs-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+<% } %>
 
-        <%- include('partials/footer') %>
+<%- body %>
+
+<%- include('partials/footer') %>

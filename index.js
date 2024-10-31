@@ -1,6 +1,5 @@
 //Node.js File to handle the backend
 
-
 require('dotenv').config();
 const path = require("path")
 
@@ -33,14 +32,14 @@ const authenticateJWT = (allowedRoles = []) => {
         const token = req.cookies.logintoken;
         if (!token) {
             // Redirect to login with the original request URL
-            return res.redirect(`/login?redirect=${encodeURIComponent(req.originalUrl)}`);
+            return res.redirect(`/login?redirect=${encodeURIComponent(req.originalUrl)}&msg=${encodeURIComponent("Please login to continue")}`);
+
         }
 
         jwt.verify(token, process.env.JWT_SECRET, (err, resultVer) => {
             if (err) {
                 // Login Expired
-                // Send message that the login has expired
-                return res.redirect(`/login?redirect=${encodeURIComponent(req.originalUrl)}`);
+                return res.redirect(`/login?redirect=${encodeURIComponent(req.originalUrl)}&msg=${encodeURIComponent("Login has expired. Please login again")}`);
             }
 
             const { Reg_No } = resultVer;
@@ -88,8 +87,6 @@ const checkIfLoggedIn = (req, res, next) => {
     });
 };
 
-
-
 //Database Connnection
 const mysql = require('mysql2');
 
@@ -117,15 +114,17 @@ app.use(express.static('public'));
 // App routes start here
 
 app.get('/', (req, res) => {
-
-    res.sendFile(path.join(__dirname, '/views/home.html'));
+    const mesg = req.query.msg
+    res.render("home", { title: "Home Page", msg: mesg })
 });
 app.get('/login', checkIfLoggedIn, (req, res) => {
     if (req.isLoggedIn) {
         const redirectUrl = req.query.redirect || '/';
-        return res.redirect(redirectUrl);
+        const msg = "You are already logged in. Redirected to the home page";
+        return res.redirect(`${redirectUrl}?msg=${encodeURIComponent(msg)}`);
     } else {
-        res.render("login", { title: "Login", redirectUrl: req.query.redirect || '/' });
+        const mesg = req.query.msg
+        res.render("login", { title: "Login", redirectUrl: req.query.redirect || '/', msg: mesg });
     }
 });
 
