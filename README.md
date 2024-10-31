@@ -36,8 +36,8 @@ This project is a web-based attendance management system designed to track stude
 Create a MySQL database for the attendance management system. Use the following SQL commands to create the necessary tables:
 ```
 CREATE TABLE Student_Data (
-    Reg_no CHAR(7) PRIMARY KEY,
-    Student_name VARCHAR(35) NOT NULL UNIQUE,
+    Reg_no CHAR(15) PRIMARY KEY,
+    Student_name VARCHAR(50) NOT NULL UNIQUE,
     Department CHAR(5) NOT NULL,
     YearOfStudy INT NOT NULL,
     Section CHAR(1) NOT NULL,
@@ -49,11 +49,23 @@ CREATE TABLE Student_Data (
 );
 
 CREATE TABLE Student_Absent_Data (
-    Reg_no CHAR(7),
+    Reg_no CHAR(15),
     Reason VARCHAR(58) NOT NULL,
     Late_Date DATETIME DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (Reg_no, Late_Date),
     FOREIGN KEY (Reg_no) REFERENCES Student_Data(Reg_no)
+);
+
+CREATE TABLE IF NOT EXISTS staff_data (
+    Reg_No CHAR(15) PRIMARY KEY,
+    Password VARCHAR(255) NOT NULL;
+    Staff_Name VARCHAR(50) NOT NULL,
+    Department CHAR(5) NOT NULL,
+    Mail_Id VARCHAR(50) NOT NULL,
+    Mob_No VARCHAR(15) NOT NULL,
+    Access_Role INT NOT NULL,
+    YearOfClass INT,
+    Section CHAR(2)
 );
 ```
 
@@ -64,6 +76,7 @@ DB_HOST=localhost
 DB_USER=your_database_user
 DB_PASSWORD=your_database_password
 DB_NAME=your_database_name
+JWT_SECRET=your_secret_key
 ```
 
 6. **Run the Server** Start the Node.js server by running:

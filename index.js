@@ -18,6 +18,78 @@ const bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// For session memory for authentication 
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
+
+
+// For reference
+// 1.Staff
+// 2.Tutor
+// 3.HOD
+const authenticateJWT = (allowedRoles = []) => {
+    return (req, res, next) => {
+        const token = req.cookies.logintoken;
+        if (!token) {
+            // Redirect to login with the original request URL
+            return res.redirect(`/login?redirect=${encodeURIComponent(req.originalUrl)}`);
+        }
+
+        jwt.verify(token, process.env.JWT_SECRET, (err, resultVer) => {
+            if (err) {
+                // Login Expired
+                // Send message that the login has expired
+                return res.redirect(`/login?redirect=${encodeURIComponent(req.originalUrl)}`);
+            }
+
+            const { Reg_No } = resultVer;
+
+            const query = 'SELECT * FROM staff_data WHERE Reg_No = ?';
+            db.query(query, [Reg_No], (err, results) => {
+                if (err) {
+                    console.error("Database error:", err);
+                    return res.send(`Database error: ${err}`);
+                }
+
+                if (results.length === 0) {
+                    return res.send("User not found");
+                }
+
+                const userRole = results[0].Access_Role;
+
+                if (!allowedRoles.includes(userRole)) {
+                    return res.send(`Classified Information. Access Denied.`);
+                }
+
+                req.user = { Reg_No, accessRole: userRole };
+                next();
+            });
+        });
+    };
+};
+
+
+const checkIfLoggedIn = (req, res, next) => {
+    const token = req.cookies.logintoken;
+    if (!token) {
+        req.isLoggedIn = false;
+        return next();
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, result) => {
+        if (err) {
+            req.isLoggedIn = false;
+        } else {
+            req.isLoggedIn = true;
+            req.user = { Reg_No: result.Reg_No, accessRole: result.Access_Role };
+        }
+        next();
+    });
+};
+
+
+
 //Database Connnection
 const mysql = require('mysql2');
 
@@ -33,11 +105,55 @@ db.connect(err => {
     console.log('MySQL Connected...');
 });
 
+
+// For the header and footer content
+const expressLayouts = require('express-ejs-layouts');
+app.use(expressLayouts);
+app.set('layout', 'master');
+
+// For static css and js
+app.use(express.static('public'));
+
+// App routes start here
+
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '/views/login.html'));
+
+    res.sendFile(path.join(__dirname, '/views/home.html'));
+});
+app.get('/login', checkIfLoggedIn, (req, res) => {
+    if (req.isLoggedIn) {
+        const redirectUrl = req.body.redirect || '/';
+        return res.redirect(redirectUrl);
+    } else {
+        res.render("login", { title: "Login", redirectUrl: req.body.redirect || '/' });
+    }
 });
 
-app.get('/records', (req, res) => {
+app.post("/login", (req, res) => {
+    const Reg_No = req.body.Reg_No;
+    const password = req.body.password;
+    const query = "SELECT * FROM staff_data WHERE Reg_No = ?";
+
+    db.query(query, [Reg_No], (err, result) => {
+        if (err) {
+            return res.send(`Authentication Unsuccessful. Error: ${err}`);
+        }
+        if (result.length === 0) {
+            return res.send("User Not Found");
+        }
+        if (password === result[0].Password) {
+            const token = jwt.sign({ Reg_No: result[0].Reg_No, Access_Role: result[0].Access_Roll }, process.env.JWT_SECRET, { expiresIn: '1h' });
+            res.cookie('logintoken', token, { httpOnly: true, secure: false, sameSite: 'Strict' });
+
+            const redirectUrl = req.body.redirect || '/records';
+            return res.redirect(redirectUrl);
+        } else {
+            return res.send("Incorrect Password");
+        }
+    });
+});
+
+app.get('/records', authenticateJWT([2, 3]), (req, res) => {
     const query = 'SELECT * FROM student_data';
 
     db.query(query, (err, results) => {
@@ -45,17 +161,17 @@ app.get('/records', (req, res) => {
             console.error('Error fetching records:', err);
             res.send('Error fetching records');
         } else {
-            res.render('records', { students: results });
+            res.render('records', { students: results, title: "All records" });
         }
     });
 
 });
 
-app.get('/form1', (req, res) => {
-    res.sendFile(path.join(__dirname, '/views/form1.html'));
+app.get('/lateAbsenceForm', authenticateJWT([2, 3]), (req, res) => {
+    res.render("lateAbsenceForm", { title: "Late Attendance Form" })
 });
 
-app.get("/records/:Dept/:Class/:Sec", (req, res) => {
+app.get("/records/:Dept/:Class/:Sec", authenticateJWT([2, 3]), (req, res) => {
     const params = [req.params.Dept, req.params.Class, req.params.Sec];
     const query = "SELECT * FROM student_absent_data a,student_data b WHERE a.Reg_no = b.Reg_no and Department = ? AND YearOfStudy = ? AND Section = ?";
     db.query(query, params, (err, results) => {
@@ -88,12 +204,26 @@ app.get("/records/:Dept/:Class/:Sec", (req, res) => {
 
         // Converting the object to an array for easier iteration
         const resultArray = Object.values(groupedStudents);
+        title = `${params[0]} - ${params[1]}${params[2]}`
+        res.render('recordsPerClass', { students: resultArray, urlPar: params, title: title });
+    })
+});
+app.get("/records/:Dept", authenticateJWT([3]), (req, res) => {
+    let dept = req.params.Dept
+    const query = "SELECT YearOfStudy, Section, COUNT(*) as AbsenceCount FROM student_absent_data a, student_data b WHERE a.Reg_no = b.Reg_no and Department = ? group by YearOfStudy , Section;";
+    db.query(query, dept, (err, result) => {
+        if (err) {
+            console.error('Error fetching records:', err);
+            res.send('Error fetching records');
+        }
+        dept = dept.toUpperCase()
+        res.render("recordsPerDept", { data: result, deptName: dept, title: `Records for Department - ${dept}` });
 
-        res.render('recordsPerClass', { students: resultArray, urlPar: params });
     })
 });
 
-app.get('/fetch-student/:Reg_no', (req, res) => {
+
+app.get('/fetch-student/:Reg_no', authenticateJWT([1, 2, 3]), (req, res) => {
     const regNo = req.params.Reg_no;
     const query = 'SELECT * FROM student_data WHERE Reg_no = ?';
 
@@ -108,13 +238,13 @@ app.get('/fetch-student/:Reg_no', (req, res) => {
     });
 });
 
-app.post('/save-absence', (req, res) => {
+app.post('/save-absence', authenticateJWT([1, 2, 3]), (req, res) => {
     const rollNumber = req.body.Reg_no2;
     const reason = req.body.reason;
 
-    const query = 'INSERT INTO student_absent_data (Reg_no, reason) VALUES (?, ?)';
+    const query = 'INSERT INTO student_absent_data (Reg_no, reason, Staff_Reg_No) VALUES (?, ?, ?)';
 
-    db.query(query, [rollNumber, reason], (err) => {
+    db.query(query, [rollNumber, reason, req.user.Reg_No], (err) => {
         if (err) return res.status(500).send(err);
 
         const monthAgo = new Date();
@@ -123,11 +253,8 @@ app.post('/save-absence', (req, res) => {
         const q2 = 'SELECT COUNT(*) as c FROM student_absent_data WHERE Reg_no = ? AND Late_Date >= ?';
         db.query(q2, [rollNumber, monthAgo], (err, results) => {
             if (err) return res.status(500).send(err);
-
-
             const totalAbsences = results[0].c;
             let msg;
-
             const q3 = "select * from student_data where Reg_no = ?"
             db.query(q3, [rollNumber], (err, results1) => {
                 if (err) return res.status(500).send(err);
@@ -140,25 +267,16 @@ app.post('/save-absence', (req, res) => {
                 } else {
                     msg = `${name} from ${dept} ${sect} has been late for ${totalAbsences} days `
                 }
-
-                res.send(`<!DOCTYPE html>
-                <html>
-                    <head>
-                        <title>Success</title>
-                    </head>
-                    <body>
-                        <h1>Absence recorded successfully!</h1>
-                        <h2>${msg}</h2>
-                        <a href="/form1" class="btn btn-primary">Go back to home page now</a>
-                    </body>
-                </html>`);
-
+                res.render('absenceFormSubmitted', { msg: msg, title: "Late attendance submitted" });
             })
-
-
         });
     });
 });
+
+//Handle the 404
+app.all('*', (req, res) => {
+    res.render('page404', { title: "404 Page" });
+})
 
 const PORT = process.env.PORT || portToUse;
 app.listen(PORT, () => {

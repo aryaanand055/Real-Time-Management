@@ -75,6 +75,10 @@
     display: none;
 }
 
-.clickable-row{
+.clickable-row {
+    cursor: pointer;
+}
+
+.table_link{
     cursor: pointer;
 }
