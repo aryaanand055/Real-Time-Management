@@ -105,6 +105,7 @@ db.connect(err => {
 
 // For the header and footer content
 const expressLayouts = require('express-ejs-layouts');
+const { access } = require('fs');
 app.use(expressLayouts);
 app.set('layout', 'master');
 
@@ -113,9 +114,14 @@ app.use(express.static('public'));
 
 // App routes start here
 
-app.get('/', (req, res) => {
+app.get("/", (req, res) => {
+    res.render("home", { title: "Home Page" })
+
+})
+
+app.get('/dashboard', (req, res) => {
     const mesg = req.query.msg
-    res.render("home", { title: "Home Page", msg: mesg })
+    res.render("dashboard", { title: "Home Page", msg: mesg })
 });
 app.get('/login', checkIfLoggedIn, (req, res) => {
     if (req.isLoggedIn) {
@@ -132,20 +138,35 @@ app.post("/login", (req, res) => {
     const Reg_No = req.body.Reg_No;
     const password = req.body.password;
     const query = "SELECT * FROM staff_data WHERE Reg_No = ?";
-    const redirectUrl = req.body.redirect || '/records'
     db.query(query, [Reg_No], (err, result) => {
         if (err) {
-            return res.send(`Authentication Unsuccessful. Error: ${err}`);
+            return res.json({
+                success: false,
+                message: "Error occurred while logging in",
+                access_role: result[0].Access_Role
+            })
         }
         if (result.length === 0) {
-            return res.send("User Not Found");
+            return res.json({
+                success: false,
+                message: "Authentication Unsuccessful. User not found",
+                access_role: result[0].Access_Role
+            })
         }
         if (password === result[0].Password) {
             const token = jwt.sign({ Reg_No: result[0].Reg_No, Access_Role: result[0].Access_Roll }, process.env.JWT_SECRET, { expiresIn: '1h' });
             res.cookie('logintoken', token, { httpOnly: true, secure: false, sameSite: 'Strict' });
-            return res.redirect(redirectUrl);
+            return res.json({
+                success: true,
+                message: "Login Successful",
+                access_role: result[0].Access_Role
+            })
         } else {
-            return res.send("Incorrect Password");
+            return res.json({
+                success: false,
+                message: "Authentication Unsuccessful - Incorrect Password",
+                access_role: result[0].Access_Role
+            })
         }
     });
 });
@@ -155,8 +176,29 @@ app.get('/logout', (req, res) => {
     res.redirect('/login?msg=' + encodeURIComponent("You have been logged out successfully"));
 });
 
+app.get("/records", authenticateJWT([2, 3]), (req, res) => {
+    const userRegNo = req.user.Reg_No;
+    const query = "SELECT * FROM staff_data WHERE Reg_No = ?";
+    db.query(query, [userRegNo], (err, result) => {
+        if (err) {
+            console.error('Error fetching records:', err);
+            res.send('Error fetching records');
+        } else if (result.length === 0) {
+            res.send('No records found for the user.');
+        } else {
+            let arole = result[0].Access_Role
+            if (arole == 2) {
+                return res.redirect("/records/class")
+            } else if (arole == 3) {
+                return res.redirect("/records/dept")
+            }
 
-app.get('/records', authenticateJWT([2, 3]), (req, res) => {
+        }
+    });
+
+})
+
+app.get('/recordsall', authenticateJWT([2, 3]), (req, res) => {
     const query = 'SELECT * FROM student_data';
 
     db.query(query, (err, results) => {
@@ -174,7 +216,7 @@ app.get('/lateAbsenceForm', authenticateJWT([2, 3]), (req, res) => {
     res.render("lateAbsenceForm", { title: "Late Attendance Form" })
 });
 
-app.get("/class", authenticateJWT([2, 3]), (req, res) => {
+app.get("/records/class", authenticateJWT([2, 3]), (req, res) => {
     const userRegNo = req.user.Reg_No;
 
     const query = "SELECT * FROM staff_data WHERE Reg_No = ?";

@@ -1,0 +1,66 @@
+<div class="container mt-5">
+  <div class="text-center mb-5">
+    <h1>Welcome to PSG Institute of Technology and Applied Research's Late Attendance Management System</h1>
+    <p id="role-message">Oversee attendance across the entire department.</p>
+  </div>
+
+  <div class="row">
+
+    <div class="col-md-4 mb-4" id="hod-links" style="display: block;">
+      <h3>Quick Links for HOD</h3>
+      <ul class="list-group">
+        <li class="list-group-item"><a href="/records/dept">View Department Records</a></li>
+        <li class="list-group-item"><a href="/lateAbsenceForm">Record Late Attendance</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="row mt-4">
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Total Late Attendances (Today)</h5>
+          <p class="card-text">120</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Total Late Attendances (Last 7 days)</h5>
+          <p class="card-text">45</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Total Late Attendances (Last 30 days)</h5>
+          <p class="card-text">45/50 students present</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert alert-warning mt-4" role="alert">
+    The classes with more than 10 students who come late are 1-A, 3-C
+  </div>
+
+  <div class="mt-5">
+    <h3>Quick Student Lookup</h3>
+    <h6>Enter Student registration number for lookup on the details of the student</h6>
+    <form action="/fetch-student/:Reg_no" method="GET" class="form-inline">
+      <input type="text" name="reg_no" class="form-control mb-2 mr-2" placeholder="Enter Registration Number">
+      <button type="submit" class="btn btn-primary mb-2">Search</button>
+    </form>
+  </div>
+
+  <div class="mt-5">
+    <h3>Recent Activity</h3>
+    <ul class="list-group">
+      <li class="list-group-item">Student ID: T24Z121 - Recorded at 9:55 AM</li>
+      <li class="list-group-item">Student ID: T23Z145 - Recorded at 8:55 AM</li>
+      <li class="list-group-item">Student ID: T23Z092 - Recorded at 8:45 AM</li>
+    </ul>
+  </div>
+</div>
