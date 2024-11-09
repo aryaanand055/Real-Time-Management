@@ -1,36 +1,36 @@
 <div class="container mt-5">
-    <h2 class="m-2">Late Attendance Record for Department - <%= deptName %>
-    </h2>
+  <h2 class="m-2">Late Attendance Record for Department - <%= deptName %>
+  </h2>
+  <h5 class="m-3">Click on a row to get more details</h5>
 
-    <% if (data.length===0) { %>
-        <p>No records found for this department.</p>
-        <% } else { %>
-            <table class="table table-bordered table-hover ">
-                <thead class="thead-dark">
-                    <tr>
-                        <th scope="col">Year of Study</th>
-                        <th scope="col">Section</th>
-                        <th scope="col">Absence Count</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% data.forEach(record=> { %>
-                        <tr onclick="window.location.href = '<%= `${deptName}/${record.YearOfStudy}/${record.Section}` %>'"
-                            class="table_link" data-toggle="tooltip" data-placement="right"
-                            title="Click for detailed info">
 
-                            <td>
-                                <%= record.YearOfStudy %>
-                            </td>
-                            <td>
-                                <%= record.Section %>
-                            </td>
-                            <td>
-                                <%= record.AbsenceCount %>
-                            </td>
-                        </tr>
-                        <% }) %>
-                </tbody>
-            </table>
-            <% } %>
+  <% if (data.length===0) { %>
+  <p>No records found for this department.</p>
+  <% } else { %>
+  <table class="table table-bordered table-hover ">
+    <thead class="thead-dark">
+      <tr>
+        <th scope="col">Year of Study</th>
+        <th scope="col">Section</th>
+        <th scope="col">Absence Count</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% data.forEach(record=> { %>
+      <tr onclick="window.location.href = '<%= `${deptName}/${record.YearOfStudy}/${record.Section}` %>'" class="table_link" data-toggle="tooltip" data-placement="right" title="Click for detailed info">
+
+        <td>
+          <%= record.YearOfStudy %>
+        </td>
+        <td>
+          <%= record.Section %>
+        </td>
+        <td>
+          <%= record.AbsenceCount %>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <% } %>
 </div>
