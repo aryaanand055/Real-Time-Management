@@ -121,21 +121,23 @@ app.get("/", (req, res) => {
 
 })
 
-app.get('/dashboard', authenticateJWT([3]), (req, res) => {
+app.get('/dashboard', authenticateJWT([2, 3]), (req, res) => {
     const mesg = req.query.msg;
     const userRegNo = req.user.Reg_No;
+    const access_role = req.user.accessRole
+    if (access_role === 3) {
+        //Hod Dashboard
+        const query = "SELECT * FROM staff_data WHERE Reg_No = ?";
+        db.query(query, [userRegNo], (err, result) => {
+            if (err) {
+                console.error('Error fetching records:', err);
+                res.send('Error fetching records');
+            } else if (result.length === 0) {
+                res.send('No data found');
+            } else {
+                const dept = result[0].Department;
 
-    const query = "SELECT * FROM staff_data WHERE Reg_No = ?";
-    db.query(query, [userRegNo], (err, result) => {
-        if (err) {
-            console.error('Error fetching records:', err);
-            res.send('Error fetching records');
-        } else if (result.length === 0) {
-            res.send('No data found');
-        } else {
-            const dept = result[0].Department;
-
-            const attendanceQuery = `
+                const attendanceQuery = `
                 SELECT 
                     COUNT(CASE WHEN DATE(Late_Date) = CURDATE() THEN 1 END) AS today,
                     COUNT(CASE WHEN Late_Date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN 1 END) AS last7Days,
@@ -143,15 +145,15 @@ app.get('/dashboard', authenticateJWT([3]), (req, res) => {
                 FROM student_absent_data a, student_data b
                 WHERE a.Reg_No = B.Reg_No and b.Department = ?`;
 
-            db.query(attendanceQuery, [dept], (err, attendanceResults) => {
-                if (err) {
-                    console.error('Error fetching attendance data:', err);
-                    res.send('Error fetching attendance data');
-                } else {
-                    prevData = [{ "Total Late Attendances (Today)": attendanceResults[0].today }, { "Total Late Attendances (Last 7 days)": attendanceResults[0].last7Days }, {
-                        "Total Late Attendances (Last 30 days)": attendanceResults[0].last30Days
-                    }]
-                    const recentActivityQuery = `
+                db.query(attendanceQuery, [dept], (err, attendanceResults) => {
+                    if (err) {
+                        console.error('Error fetching attendance data:', err);
+                        res.send('Error fetching attendance data');
+                    } else {
+                        prevData = [{ "Total Late Attendances (Today)": attendanceResults[0].today }, { "Total Late Attendances (Last 7 days)": attendanceResults[0].last7Days }, {
+                            "Total Late Attendances (Last 30 days)": attendanceResults[0].last30Days
+                        }]
+                        const recentActivityQuery = `
                         SELECT a.Reg_No, Late_Date, Student_name, Section, YearOfStudy 
                         FROM student_absent_data a, student_data b
                         WHERE a.Reg_No = B.Reg_No and Department = ?
@@ -159,31 +161,35 @@ app.get('/dashboard', authenticateJWT([3]), (req, res) => {
                         limit 5
                         `;
 
-                    db.query(recentActivityQuery, [dept], (err, recentActivities) => {
-                        if (err) {
-                            console.error('Error fetching recent activity:', err);
-                            res.send('Error fetching recent activity');
-                        } else {
-                            res.render('dashboard', {
-                                title: "Home Page",
-                                msg: mesg,
-                                deptName: dept,
-                                prevData: prevData,
-                                recentActivities: recentActivities
-                            });
-                        }
-                    });
-                }
-            });
-        }
-    });
+                        db.query(recentActivityQuery, [dept], (err, recentActivities) => {
+                            if (err) {
+                                console.error('Error fetching recent activity:', err);
+                                res.send('Error fetching recent activity');
+                            } else {
+                                res.render('dashboard', {
+                                    title: "Home Page",
+                                    msg: mesg,
+                                    deptName: dept,
+                                    prevData: prevData,
+                                    recentActivities: recentActivities
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    } else if (access_role === 2) {
+        //Tutor dashboard
+        res.render("dashboard_tutor", { title: "Tutor Dashboard", msg: mesg })
+    }
 });
 
 
 app.get('/login', checkIfLoggedIn, (req, res) => {
     if (req.isLoggedIn) {
-        const redirectUrl = req.query.redirect || '/';
-        const msg = "You are already logged in. Redirected to the home page";
+        const redirectUrl = req.query.redirect || '/dashboard';
+        const msg = "You are already logged in. Redirected to dashboard ";
         return res.redirect(`${redirectUrl}?msg=${encodeURIComponent(msg)}`);
     } else {
         const mesg = req.query.msg
@@ -393,14 +399,21 @@ app.get('/fetchStudentDetails', (req, res) => {
             console.error('Error fetching student details:', err);
             return res.send('Error fetching student details');
         } else if (result.length === 0) {
-            return res.send('No data found for this registration number');
+            res.render("studentDetails", { title: "Student Details" })
         } else {
             db.query(q1, [regNo], (err, result2) => {
                 if (err) {
                     console.error('Error fetching attendance records:', err);
                     return res.send('Error fetching attendance records');
                 } else {
-                    res.render('studentDetails', { title: "Student Detail", student: result[0], attendanceRecords: result2, hodDashboard: "yes" });
+                    // Check if there are any past absent records
+                    if (result2.length > 0) {
+                        res.render('studentDetails', { title: "Student Detail", student: result[0], attendanceRecords: result2 });
+                    } else {
+                        res.render('studentDetails', {
+                            title: "Student Detail", student: result[0], attendanceRecords: []
+                        });
+                    }
                 }
 
             });

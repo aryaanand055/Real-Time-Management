@@ -45,10 +45,13 @@
       <input type="date" id="dateFilter" class="form-control">
     </div>
   </div>
-  <div class="form-check form-switch">
-    <input class="form-check-input" type="checkbox" id="joinByClassSwitch">
-    <label class="form-check-label" for="joinByClassSwitch">Join Records by Class</label>
-  </div>
+
+  <label class="switch">
+    <div class="font-weight-bold">Condensed view - </div>
+    <input type="checkbox" id="joinByClassSwitch">
+    <span for="joinByClassSwitch" class="slider round"></span>
+  </label>
+
   <table class="table table-striped mt-4" id="detailedTable">
     <thead class="thead-dark">
       <tr>
@@ -147,9 +150,9 @@
         acc[key].Count++;
         return acc;
       }, {});
-      const department = "<%= dept %>";
+      const department = "<%= dept %>".toLocaleLowerCase();
       Object.values(summary).forEach(record => {
-        const row = `<tr onclick="window.location.href = '${department}/${record.YearOfStudy}/${record.Section}'" class="table_link" data-toggle="tooltip" data-placement="right" title="Click for detailed info">
+        const row = `<tr onclick="window.location.href = 'records/${department}/${record.YearOfStudy}/${record.Section}'" class="table_link" data-toggle="tooltip" data-placement="right" title="Click for detailed info" data-bs-original-title="Click for detailed info">
         <td>${record.YearOfStudy}</td>
         <td>${record.Section}</td>
         <td>${record.Count}</td>
