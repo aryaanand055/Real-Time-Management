@@ -1,17 +1,29 @@
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-lg-6 col-md-6 d-none d-sm-block left-side d-lg-flex d-md-flex justify-content-center align-items-center">
-      <img src="/logo.png" alt="logo" class="logo">
-    </div>
-
-    <div class="col-lg-6 col-md-6 col-sm-12 right-side">
-      <div class="row">
-        <div class="col-sm-12 d-block d-sm-none d-flex justify-content-center align-items-center">
-          <img src="/logo.png" alt="logo" class="logo2">
+<div class="container main">
+  <div class="row large d-none d-lg-flex justify-content-center align-items-center ">
+    <img src="/psglogo.jpg" alt="logo" class="logo position-relative w-100 h-100">
+    <div class="row pt-5 position-absolute login-full z-6" id="loginFormCont">
+      <form id="loginForm" class="d-flex flex-column align-items-center justify-content-center">
+        <div class="row input">
+          <label for="Reg_No" class="fw-bold fs-5">Registration Number:</label>
+          <input type="text" placeholder="T24Z121" required class="input-box p-2 my-2" name="Reg_No" id="Reg_No">
         </div>
-      </div>
+        <div class="row input">
+          <label for="password" class="fw-bold fs-5">Password:</label>
+          <input type="password" placeholder="Enter the Password" required class="input-box p-2 my-2" name="password"
+            id="password">
+        </div>
+        <div class="row input mt-4 px-4">
+          <button type="submit" class="submit ">Login</button>
+        </div>
+        <div class="small">Login will expire in 1 hour</div>
+      </form>
+    </div>
+  </div>
 
-      <div class="row pt-5" id="loginFormCont">
+  <div class="row small d-flex d-lg-none justify-content-center align-items-center">
+    <div class="col-sm-12">
+      <img src="/logo.png" alt="logo" class="logo2">
+      <div class="row pt-5 p-5" id="loginFormCont">
         <form id="loginForm" class="d-flex flex-column align-items-center justify-content-center">
           <div class="row input">
             <label for="Reg_No" class="fw-bold fs-5">Registration Number:</label>
@@ -19,22 +31,27 @@
           </div>
           <div class="row input">
             <label for="password" class="fw-bold fs-5">Password:</label>
-            <input type="password" placeholder="Enter the Password" required class="input-box p-2 my-2" name="password" id="password">
+            <input type="password" placeholder="Enter the Password" required class="input-box p-2 my-2" name="password"
+              id="password">
           </div>
           <div class="row input mt-4">
-            <button type="submit" class="submit">Login</button>
+            <button type="submit" class="submit ">Login</button>
           </div>
           <div class="small">Login will expire in 1 hour</div>
         </form>
       </div>
-
-      <div id="roleButtons" class="mt-4 text-center"></div>
     </div>
+
   </div>
+
+
+  <div id="roleButtons" class="mt-4 text-center"></div>
+</div>
+</div>
 </div>
 
 <script>
-  document.getElementById('loginForm').addEventListener('submit', async function(event) {
+  document.getElementById('loginForm').addEventListener('submit', async function (event) {
     event.preventDefault();
     const regNo = document.getElementById('Reg_No').value;
     const password = document.getElementById('password').value;
