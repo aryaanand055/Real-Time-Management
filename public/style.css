@@ -4,16 +4,16 @@
     position: relative;
 }
 
-.large{
+.large {
     width: 110vw;
     height: 100%;
     position: absolute;
     right: -80px;
-    
+
 }
 
 .logo {
-    width:100%;
+    width: 100%;
     z-index: -1;
     opacity: 0.8;
 }
@@ -36,7 +36,8 @@
 .input-box {
     border-radius: 4px;
 }
-.login-full{
+
+.login-full {
     right: 500px;
     border: solid 2px gray;
     border-radius: 4px;
@@ -53,7 +54,7 @@
     background: rgb(4, 4, 117);
     transition: transform 0.2s ease;
     cursor: pointer;
-   margin-left: 30px;
+    margin-left: 30px;
 }
 
 .logo {
@@ -192,4 +193,66 @@ input:checked+.slider:before {
     to {
         width: 0;
     }
+}
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+
+.navbar-brand {
+    font-size: 18px;
+}
+
+
+
+/* Login */
+/* Fullscreen Background Image */
+.background-image {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    object-fit: cover;
+    z-index: -1;
+    filter: blur(5px);
+}
+
+#loginFormCont {
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: 10px;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 20px 25px -5px, rgba(0, 0, 0, 0.04) 0px 10px 10px -5px;
+    padding: 20px;
+    max-width: 400px;
+    width: 90%;
+    position: relative;
+    z-index: 1;
+}
+
+
+
+.small {
+    color: #555;
+    font-size: 0.9em;
+    margin-top: 30px;
+}
+
+/* Display the form in center of page */
+#loginPage {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.p404cont {
+    /* position: relative;
+width: 100%;
+height: 100%;
+display: flex;
+align-content: center;
+align-items: center;
+align-self: center; */
 }

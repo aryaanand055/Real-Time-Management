@@ -1,1 +1,66 @@
-<h1>Tutor Dashboard</h1>
+<% function getOrdinal(num) { const suffixes=["st" , "nd" , "rd" , "th" ,"th" ];return num+ suffixes[num -1]} %>
+<div class="container mt-5">
+  <div class="text-center mb-5">
+    <h1>Welcome to PSG Institute of Technology and Applied Research's Late Attendance Management System</h1>
+    <p id="role-message">Oversee late attendance for your class.</p>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 mb-4" id="hod-links" style="display: block;">
+      <h3>View records</h3>
+      <ul class="list-group">
+        <li class="list-group-item"><a href="/records/class">View Records of your class</a></li>
+      </ul>
+    </div>
+    <div class="col-md-6 mb-4" id="hod-links" style="display: block;">
+      <h3>Submit late attendance form</h3>
+      <ul class="list-group">
+        <li class="list-group-item"><a href="/lateAbsenceForm">Record Late Attendance</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="row mt-4">
+    <% prevData.forEach(data=> {
+        const [title, count] = Object.entries(data)[0]; %>
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">
+            <%= title %>
+          </h5>
+          <p class="card-text">
+            <%= count %>
+          </p>
+        </div>
+      </div>
+    </div>
+    <% }); %>
+  </div>
+
+
+  <div class="mt-5">
+    <h3>Quick Student Lookup</h3>
+    <h6>Enter Student registration number for lookup on the details of the student</h6>
+    <form action="/fetchStudentDetails" method="GET" class="form-inline">
+      <input type="text" name="reg_no" class="form-control mb-2 mr-2 pr-3 pl-3" placeholder="Enter Registration Number" required>
+      <button type="submit" class="btn btn-primary mb-2">Search</button>
+    </form>
+  </div>
+
+  <div class="mt-5">
+    <h3>Recent Activity</h3>
+    <ul class="list-group">
+      <% recentActivities.forEach(activity=> { %>
+      <li class="list-group-item">
+        <%= activity.Reg_No %> - <%= getOrdinal(activity.YearOfStudy) %> Year - <%= activity.Section %> - <%=
+                    activity.Student_name %>
+        <span class="recent_record float-right">
+          <%= new Date(activity.Late_Date).toLocaleString('en-US', { weekday: 'short' , month: 'short' ,
+                        day: '2-digit' , year: 'numeric' , hour: '2-digit' , minute: '2-digit' , second: '2-digit' ,
+                        hour12: false }) %>
+        </span>
+      </li>
+      <% }); %>
+    </ul>
+  </div>
+</div>

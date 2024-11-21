@@ -1,5 +1,6 @@
 <div class="container main">
-  <div class="row large d-none d-lg-flex justify-content-center align-items-center ">
+  <img src="/psglogo.jpg" alt="Background" class="background-image">
+  <!-- <div class="row large d-none d-lg-flex justify-content-center align-items-center ">
     <img src="/psglogo.jpg" alt="logo" class="logo position-relative w-100 h-100">
     <div class="row pt-5 position-absolute login-full z-6" id="loginFormCont">
       <form id="loginForm" class="d-flex flex-column align-items-center justify-content-center">
@@ -9,8 +10,7 @@
         </div>
         <div class="row input">
           <label for="password" class="fw-bold fs-5">Password:</label>
-          <input type="password" placeholder="Enter the Password" required class="input-box p-2 my-2" name="password"
-            id="password">
+          <input type="password" placeholder="Enter the Password" required class="input-box p-2 my-2" name="password" id="password">
         </div>
         <div class="row input mt-4 px-4">
           <button type="submit" class="submit ">Login</button>
@@ -18,9 +18,8 @@
         <div class="small">Login will expire in 1 hour</div>
       </form>
     </div>
-  </div>
-
-  <div class="row small d-flex d-lg-none justify-content-center align-items-center">
+  </div> -->
+  <!-- <div class="row small d-flex d-lg-none justify-content-center align-items-center">
     <div class="col-sm-12">
       <img src="/logo.png" alt="logo" class="logo2">
       <div class="row pt-5 p-5" id="loginFormCont">
@@ -31,8 +30,7 @@
           </div>
           <div class="row input">
             <label for="password" class="fw-bold fs-5">Password:</label>
-            <input type="password" placeholder="Enter the Password" required class="input-box p-2 my-2" name="password"
-              id="password">
+            <input type="password" placeholder="Enter the Password" required class="input-box p-2 my-2" name="password" id="password">
           </div>
           <div class="row input mt-4">
             <button type="submit" class="submit ">Login</button>
@@ -42,67 +40,63 @@
       </div>
     </div>
 
+  </div> -->
+
+  <div id="loginPage">
+    <div class="container" id="loginFormCont">
+      <form id="loginForm" class="d-flex flex-column align-items-center justify-content-center">
+        <div class="row input">
+          <label for="Reg_No" class="fw-bold fs-5">Registration Number:</label>
+          <input type="text" placeholder="T24Z121" required class="input-box p-2 my-2 form-control " name="Reg_No" id="Reg_No">
+        </div>
+        <div class="row input">
+          <label for="password" class="fw-bold fs-5">Password:</label>
+          <input type="password" placeholder="Enter the Password" required class="input-box p-2 my-2 input form-control" name="password" id="password">
+        </div>
+        <div class="row  mt-4">
+          <button type="submit" class="submit btn btn-primary p-0 m-0">Login</button>
+        </div>
+        <div class="small">Login will expire in 1 hour</div>
+      </form>
+    </div>
   </div>
-
-
-  <div id="roleButtons" class="mt-4 text-center"></div>
-</div>
-</div>
 </div>
 
 <script>
-  document.getElementById('loginForm').addEventListener('submit', async function (event) {
-    event.preventDefault();
+  document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
     const regNo = document.getElementById('Reg_No').value;
     const password = document.getElementById('password').value;
     const urlParams = new URLSearchParams(window.location.search);
     const redirectUrl = urlParams.get('redirect');
-    try {
-      const response = await fetch('/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          Reg_No: regNo,
-          password: password
-        })
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error('Login failed');
-      }
+    const response = await fetch('/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        Reg_No: regNo,
+        password: password
+      })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error('Login failed');
+    }
 
-      if (data.success === true) {
-        // Check if there is a redirect url
-        if (redirectUrl) {
-          window.location.href = redirectUrl;
-          return;
-        }
-        const accessRole = data.access_role;
-        document.getElementById('roleButtons').innerHTML = '';
-        if (accessRole === 1) {
-          window.location.href = '/absenceSubmitForm';
-        } else if (accessRole === 2) {
-          document.getElementById("loginFormCont").style.display = "none"
-          document.getElementById('roleButtons').innerHTML = `
-                        <button onclick="window.location.href='/lateAbsenceForm'" class="btn btn-primary m-2">Submit Form</button>
-                        <button onclick="window.location.href='/records/class'" class="btn btn-secondary m-2">View Class Records</button>
-                        `;
-        } else if (accessRole === 3) {
-          document.getElementById("loginFormCont").style.display = "none"
-          document.getElementById('roleButtons').innerHTML = `
-                         <button onclick="window.location.href='/lateAbsenceForm'" class="btn btn-primary m-2">Submit Form</button>
-                        <button onclick="window.location.href='/dashboard'" class="btn btn-secondary m-2">HOD Dashboard</button>
-                        `;
-        }
-      } else {
-        alert(data.message);
+    if (data.success === true) {
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
+        return;
       }
-
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Login failed. Please check your credentials and try again.');
+      const accessRole = data.access_role;
+      if (accessRole === 1) {
+        window.location.href = '/lateAbsenceForm';
+      } else if (accessRole === 2 || accessRole === 3) {
+        window.location.href = '/dashboard';
+      }
+    } else {
+      alert(data.message);
     }
   });
 </script>

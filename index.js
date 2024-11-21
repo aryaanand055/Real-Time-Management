@@ -54,7 +54,10 @@ const authenticateJWT = (allowedRoles = []) => {
                 const dept = results[0].Department;
 
                 if (!allowedRoles.includes(userRole)) {
-                    return res.send(`Classified Information. Access Denied.`);
+                    return res.render('accessDenied', {
+                        title: 'Access Denied',
+                        message: 'Classified Information.',
+                    });
                 }
 
                 req.user = { Reg_No, accessRole: userRole, Dept: dept };
@@ -67,9 +70,13 @@ const authenticateJWT = (allowedRoles = []) => {
 //  1.Staff
 //  2.Tutor
 //  3.HOD
-// 
+//
 // To access the user role or dept, use the following code
 // req.user.Dept
+// To check if the user is logged in
+// req.isLoggedIn
+
+
 
 const checkIfLoggedIn = (req, res, next) => {
     const token = req.cookies.logintoken;
@@ -117,7 +124,10 @@ app.use(express.static('public'));
 // App routes start here
 
 app.get("/", (req, res) => {
-    res.render("home", { title: "Home Page" })
+    if (req.isLoggedIn) {
+        return res.render("dashboard", { title: "Dashboard" })
+    };
+    res.redirect("/login")
 
 })
 
@@ -158,7 +168,7 @@ app.get('/dashboard', authenticateJWT([2, 3]), (req, res) => {
                         FROM student_absent_data a, student_data b
                         WHERE a.Reg_No = B.Reg_No and Department = ?
                         ORDER BY Late_Date DESC
-                        limit 5
+                        limit 10
                         `;
 
                         db.query(recentActivityQuery, [dept], (err, recentActivities) => {
@@ -166,10 +176,84 @@ app.get('/dashboard', authenticateJWT([2, 3]), (req, res) => {
                                 console.error('Error fetching recent activity:', err);
                                 res.send('Error fetching recent activity');
                             } else {
-                                res.render('dashboard', {
+                                const dept = req.user.Dept
+                                const query = `
+                                        SELECT a.Reg_No, Late_Date, Student_name, Section, YearOfStudy, Reason
+                                        FROM student_absent_data a, student_data b
+                                        WHERE a.Reg_No = b.Reg_No
+                                        and b.Department = ?
+                                        ORDER BY Late_Date DESC;
+                                    `;
+                                db.query(query, [dept], (err, records) => {
+                                    if (err) {
+                                        console.error('Error fetching attendance records:', err);
+                                        return res.status(500).send('Server error');
+                                    } else {
+                                        res.render('dashboard', {
+                                            title: "Dashboard",
+                                            msg: mesg,
+                                            deptName: dept,
+                                            dept: dept,
+                                            prevData: prevData,
+                                            recentActivities: recentActivities,
+                                            records: records,
+                                        });
+
+                                    }
+                                });
+
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    } else if (access_role === 2) {
+        //Tutor dashboard
+        const query = "SELECT * FROM staff_data WHERE Reg_No = ?";
+        db.query(query, [userRegNo], (err, result) => {
+            if (err) {
+                console.error('Error fetching records:', err);
+                res.send('Error fetching records');
+            } else if (result.length === 0) {
+                res.send('No data found');
+            } else {
+                const dept = result[0].Department;
+                const YOS = result[0].YearOfClass;
+                const Sec = result[0].Section;
+
+                const attendanceQuery = `
+                SELECT 
+                    COUNT(CASE WHEN DATE(Late_Date) = CURDATE() THEN 1 END) AS today,
+                    COUNT(CASE WHEN Late_Date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN 1 END) AS last7Days,
+                    COUNT(CASE WHEN Late_Date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) THEN 1 END) AS last30Days
+                FROM student_absent_data a, student_data b
+                WHERE a.Reg_No = B.Reg_No and b.Department = ? and b.YearOfStudy = ? and b.Section =?`;
+
+                db.query(attendanceQuery, [dept, YOS, Sec], (err, attendanceResults) => {
+                    if (err) {
+                        console.error('Error fetching attendance data:', err);
+                        res.send('Error fetching attendance data');
+                    } else {
+                        prevData = [{ "Total Late Attendances (Today)": attendanceResults[0].today }, { "Total Late Attendances (Last 7 days)": attendanceResults[0].last7Days }, {
+                            "Total Late Attendances (Last 30 days)": attendanceResults[0].last30Days
+                        }]
+                        const recentActivityQuery = `
+                        SELECT a.Reg_No, Late_Date, Student_name, Section, YearOfStudy 
+                        FROM student_absent_data a, student_data b
+                        WHERE a.Reg_No = B.Reg_No and Department = ? and b.YearOfStudy = ? and b.Section =?
+                        ORDER BY Late_Date DESC
+                        limit 5
+                        `;
+
+                        db.query(recentActivityQuery, [dept, YOS, Sec], (err, recentActivities) => {
+                            if (err) {
+                                console.error('Error fetching recent activity:', err);
+                                res.send('Error fetching recent activity');
+                            } else {
+                                res.render('dashboard_tutor', {
                                     title: "Home Page",
                                     msg: mesg,
-                                    deptName: dept,
                                     prevData: prevData,
                                     recentActivities: recentActivities
                                 });
@@ -179,9 +263,6 @@ app.get('/dashboard', authenticateJWT([2, 3]), (req, res) => {
                 });
             }
         });
-    } else if (access_role === 2) {
-        //Tutor dashboard
-        res.render("dashboard_tutor", { title: "Tutor Dashboard", msg: mesg })
     }
 });
 
@@ -217,13 +298,17 @@ app.post("/login", (req, res) => {
             })
         }
         if (password === result[0].Password) {
-            const token = jwt.sign({ Reg_No: result[0].Reg_No, Access_Role: result[0].Access_Role, Dept: result[0].Department }, process.env.JWT_SECRET, { expiresIn: '1h' });
+            const token = jwt.sign(
+                { Reg_No: result[0].Reg_No, Access_Role: result[0].Access_Role, Dept: result[0].Department },
+                process.env.JWT_SECRET,
+                { expiresIn: '1h' }
+            );
             res.cookie('logintoken', token, { httpOnly: true, secure: false, sameSite: 'Strict' });
-            return res.json({
+            return res.status(200).json({
                 success: true,
                 message: "Login Successful",
-                access_role: result[0].Access_Role
-            })
+                access_role: result[0].Access_Role,
+            });
         } else {
             return res.json({
                 success: false,
@@ -275,7 +360,7 @@ app.get('/recordsall', authenticateJWT([2, 3]), (req, res) => {
 
 });
 
-app.get('/lateAbsenceForm', authenticateJWT([2, 3]), (req, res) => {
+app.get('/lateAbsenceForm', authenticateJWT([1, 2, 3]), (req, res) => {
     res.render("lateAbsenceForm", { title: "Late Attendance Form" })
 });
 
@@ -327,6 +412,7 @@ app.get("/records/dept", authenticateJWT([3]), (req, res) => {
 
 
 app.get("/records/:Dept/:Class/:Sec", authenticateJWT([2, 3]), (req, res) => {
+
     const userRegNo = req.user.Reg_No;
 
     const query0 = "SELECT * FROM staff_data WHERE Reg_No = ?";
@@ -388,7 +474,7 @@ app.get("/records/:Dept/:Class/:Sec", authenticateJWT([2, 3]), (req, res) => {
         });
     });
 });
-app.get('/fetchStudentDetails', (req, res) => {
+app.get('/fetchStudentDetails', authenticateJWT([1, 2, 3]), (req, res) => {
     const regNo = req.query.reg_no;
 
     const q = 'SELECT * FROM student_data WHERE Reg_No = ?';
@@ -450,12 +536,12 @@ app.post('/save-absence', authenticateJWT([1, 2, 3]), (req, res) => {
         const monthAgo = new Date();
         monthAgo.setMonth(monthAgo.getMonth() - 1);
 
-        const q2 = 'SELECT COUNT(*) as c FROM student_absent_data WHERE Reg_no = ? AND Late_Date >= ?';
+        const q2 = 'SELECT COUNT(*) as c FROM student_absent_data WHERE Reg_No = ? AND Late_Date >= ?';
         db.query(q2, [rollNumber, monthAgo], (err, results) => {
             if (err) return res.status(500).send(err);
             const totalAbsences = results[0].c;
             let msg;
-            const q3 = "select * from student_data where Reg_no = ?"
+            const q3 = "select * from student_data where Reg_No = ?"
             db.query(q3, [rollNumber], (err, results1) => {
                 if (err) return res.status(500).send(err);
                 let name = results1[0].Student_name

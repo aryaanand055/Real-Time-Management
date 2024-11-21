@@ -1,26 +1,98 @@
 <% function getOrdinal(num) { const suffixes=["st" , "nd" , "rd" , "th" ,"th" ];return num+ suffixes[num -1]} %>
 <div class="container mt-5">
-  <div class="text-center mb-5">
-    <h1>Welcome to PSG Institute of Technology and Applied Research's Late Attendance Management System</h1>
-    <p id="role-message">Oversee late attendance across your entire department (<%= deptName %>).</p>
-  </div>
 
-  <div class="row">
-    <div class="col-md-6 mb-4" id="hod-links" style="display: block;">
-      <h3>View records</h3>
-      <ul class="list-group">
-        <li class="list-group-item"><a href="/attendanceRecordsAll">View Department Records</a></li>
-        <!-- <li class="list-group-item"><a href="/records/dept">Condensed View of Department records</a></li> -->
-      </ul>
+  <div class="container mt-5">
+    <h2>Attendance Records for <%= dept  %></h2>
+    <!-- <h4>Default date is set to the current date</h4> -->
+    <div class="form-group row">
+      <div class="col-md-4">
+        <label for="yearDropdown">Year of Study</label>
+        <select id="yearDropdown" class="form-control">
+          <option value="">All Years</option>
+          <%  const uniqueYears = records.reduce((acc, record) => {
+          if (!acc.includes(record.YearOfStudy)) {
+            acc.push(record.YearOfStudy);
+          }
+          return acc;
+        }, []);  
+        uniqueYears.sort();
+        %>
+          <% uniqueYears.forEach(year => { %>
+          <option value="<%= year %>">
+            <%= year %>
+          </option>
+          <% }); %>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label for="sectionDropdown">Section</label>
+        <select id="sectionDropdown" class="form-control" disabled>
+          <option value="">All Sections</option>
+          <%  const uniqueSections = records.reduce((acc, record) => {
+          if (!acc.includes(record.Section)) {
+            acc.push(record.Section);
+          }
+          return acc;
+        }, []);  
+        uniqueSections.sort();
+        %>
+          <% uniqueSections.forEach(section => { %>
+          <option value="<%= section %>">
+            <%= section %>
+          </option>
+          <% }); %>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label for="dateFilter">Date</label>
+        <input type="date" id="dateFilter" class="form-control">
+      </div>
     </div>
-    <div class="col-md-6 mb-4" id="hod-links" style="display: block;">
-      <h3>Submit late attendance form</h3>
-      <ul class="list-group">
-        <li class="list-group-item"><a href="/lateAbsenceForm">Record Late Attendance</a></li>
-      </ul>
-    </div>
+
+    <label class="switch">
+      <div class="font-weight-bold">Condensed view - </div>
+      <input type="checkbox" id="joinByClassSwitch">
+      <span for="joinByClassSwitch" class="slider round"></span>
+    </label>
+
+    <table class="table table-striped mt-4" id="detailedTable">
+      <thead class="thead-dark">
+        <tr>
+          <th>Reg. No.</th>
+          <th>Name</th>
+          <th>Year of Study</th>
+          <th>Section</th>
+          <th>Date and Time</th>
+          <th>Reason</th>
+        </tr>
+      </thead>
+      <tbody id="attendanceTable">
+        <% records.forEach(record => { %>
+        <tr>
+          <td><%= record.Reg_No %></td>
+          <td><%= record.Student_name %></td>
+          <td><%= record.YearOfStudy %></td>
+          <td><%= record.Section %></td>
+          <td><%= new Date(record.Late_Date).toLocaleDateString('en-GB', { month: 'short', day: 'numeric', year: 'numeric' , hour: '2-digit', minute: '2-digit'}) %></td>
+          <td><%= record.Reason %></td>
+        </tr>
+        <% }); %>
+      </tbody>
+    </table>
+
+    <table class="table table-striped mt-4 d-none" id="summaryTable">
+      <thead class="thead-dark">
+        <tr>
+          <th>Year of Study</th>
+          <th>Section</th>
+          <th>Count</th>
+        </tr>
+      </thead>
+      <tbody id="summaryTableBody">
+      </tbody>
+    </table>
   </div>
-  <div class="row mt-4">
+  <!-- <div class="row mt-4">
     <% prevData.forEach(data=> {
         const [title, count] = Object.entries(data)[0]; %>
     <div class="col-md-4">
@@ -36,9 +108,9 @@
       </div>
     </div>
     <% }); %>
-  </div>
+  </div> -->
 
-
+  <h1>Graphs Here</h1>
   <div class="mt-5">
     <h3>Quick Student Lookup</h3>
     <h6>Enter Student registration number for lookup on the details of the student</h6>
@@ -48,8 +120,8 @@
     </form>
   </div>
 
-  <div class="mt-5">
-    <h3>Recent Activity</h3>
+  <div class="" style=" margin-bottom: 50px;">
+    <h3>Recent Activity (last 10)</h3>
     <ul class="list-group">
       <% recentActivities.forEach(activity=> { %>
       <li class="list-group-item">
@@ -65,3 +137,91 @@
     </ul>
   </div>
 </div>
+<script>
+  const allRecords = <%- JSON.stringify(records) %>;
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const yearDropdown = document.getElementById('yearDropdown');
+    const sectionDropdown = document.getElementById('sectionDropdown');
+    const dateFilter = document.getElementById('dateFilter');
+    const joinByClassSwitch = document.getElementById('joinByClassSwitch'); // Switch element for joining records by class
+    const detailedTable = document.getElementById('detailedTable');
+    const summaryTable = document.getElementById('summaryTable');
+    const summaryTableBody = document.getElementById('summaryTableBody');
+
+    // Set the default date to today
+    const today = new Date();
+    const todayString = today.toISOString().slice(0, 10); // Format as YYYY-MM-DD
+    dateFilter.value = todayString;
+
+    function filterRecords() {
+      const year = yearDropdown.value;
+      const section = sectionDropdown.value;
+      const date = dateFilter.value;
+      const tableBody = document.getElementById('attendanceTable');
+      tableBody.innerHTML = '';
+
+      const filteredRecords = allRecords.filter(record => {
+        const matchesYear = year === '' || record.YearOfStudy.toString() === year;
+        const matchesSection = section === '' || record.Section === section;
+        const matchesDate = date === '' || new Date(record.Late_Date).toISOString().slice(0, 10) === date;
+        return matchesYear && matchesSection && matchesDate;
+      });
+
+      if (joinByClassSwitch.checked) {
+        detailedTable.classList.add('d-none');
+        summaryTable.classList.remove('d-none');
+        createSummaryTable(filteredRecords);
+      } else {
+        detailedTable.classList.remove('d-none');
+        summaryTable.classList.add('d-none');
+        filteredRecords.forEach(record => {
+          const row = `<tr>
+  <td>${record.Reg_No}</td>
+  <td>${record.Student_name}</td>
+  <td>${record.YearOfStudy}</td>
+  <td>${record.Section}</td>
+  <td>${new Date(record.Late_Date).toLocaleDateString('en-GB', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+  <td>${record.Reason}</td>
+</tr>`;
+          tableBody.insertAdjacentHTML('beforeend', row);
+        });
+      }
+    }
+
+    function createSummaryTable(records) {
+      summaryTableBody.innerHTML = '';
+      const summary = records.reduce((acc, record) => {
+        const key = `${record.YearOfStudy}-${record.Section}`;
+        if (!acc[key]) {
+          acc[key] = {
+            YearOfStudy: record.YearOfStudy,
+            Section: record.Section,
+            Count: 0
+          };
+        }
+        acc[key].Count++;
+        return acc;
+      }, {});
+      const department = "<%= dept %>".toLocaleLowerCase();
+      Object.values(summary).forEach(record => {
+        const row = `<tr onclick="window.location.href = 'records/${department}/${record.YearOfStudy}/${record.Section}'" class="table_link" data-toggle="tooltip" data-placement="right" title="Click for detailed info" data-bs-original-title="Click for detailed info">
+  <td>${record.YearOfStudy}</td>
+  <td>${record.Section}</td>
+  <td>${record.Count}</td>
+</tr>`;
+        summaryTableBody.insertAdjacentHTML('beforeend', row);
+      });
+    }
+
+    yearDropdown.addEventListener('change', () => {
+      sectionDropdown.disabled = yearDropdown.value === "";
+      filterRecords();
+    });
+    sectionDropdown.addEventListener('change', filterRecords);
+    dateFilter.addEventListener('change', filterRecords);
+    document.getElementById("joinByClassSwitch").checked = true
+    filterRecords()
+    joinByClassSwitch.addEventListener('change', filterRecords);
+  });
+</script>

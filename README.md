@@ -36,8 +36,8 @@ This project is a web-based attendance management system designed to track stude
 Create a MySQL database for the attendance management system. Use the following SQL commands to create the necessary tables:
 ```
 CREATE TABLE Student_Data (
-    Reg_no CHAR(15) PRIMARY KEY,
-    Student_name VARCHAR(50) NOT NULL UNIQUE,
+    Reg_No CHAR(15) PRIMARY KEY,
+    Student_Name VARCHAR(50) NOT NULL UNIQUE,
     Department CHAR(5) NOT NULL,
     YearOfStudy INT NOT NULL,
     Section CHAR(1) NOT NULL,
@@ -49,16 +49,18 @@ CREATE TABLE Student_Data (
 );
 
 CREATE TABLE Student_Absent_Data (
-    Reg_no CHAR(15),
+    Reg_No CHAR(15),
+    Staff_Reg_No CHAR(15),
     Reason VARCHAR(58) NOT NULL,
     Late_Date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (Reg_no, Late_Date),
-    FOREIGN KEY (Reg_no) REFERENCES Student_Data(Reg_no)
+    PRIMARY KEY (Reg_No, Late_Date),
+    FOREIGN KEY (Reg_No) REFERENCES Student_Data(Reg_No),
+    FOREIGN KEY (Staff_Reg_No) REFERENCES staff_data(Reg_No)
 );
 
 CREATE TABLE IF NOT EXISTS staff_data (
     Reg_No CHAR(15) PRIMARY KEY,
-    Password VARCHAR(255) NOT NULL;
+    Password VARCHAR(255) NOT NULL,
     Staff_Name VARCHAR(50) NOT NULL,
     Department CHAR(5) NOT NULL,
     Mail_Id VARCHAR(50) NOT NULL,
