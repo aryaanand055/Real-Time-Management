@@ -2,7 +2,7 @@
   <h2>Attendance Records for <%= dept  %></h2>
 
   <div class="form-group row">
-    <div class="col-md-4">
+    <div class="col-md-3">
       <label for="yearDropdown">Year of Study</label>
       <select id="yearDropdown" class="form-control">
         <option value="">All Years</option>
@@ -21,7 +21,7 @@
         <% }); %>
       </select>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
       <label for="sectionDropdown">Section</label>
       <select id="sectionDropdown" class="form-control" disabled>
         <option value="">All Sections</option>
@@ -40,9 +40,13 @@
         <% }); %>
       </select>
     </div>
-    <div class="col-md-4">
-      <label for="dateFilter">Date</label>
+    <div class="col-md-3">
+      <label for="dateFilter">From Date</label>
       <input type="date" id="dateFilter" class="form-control">
+    </div>
+    <div class="col-md-3">
+      <label for="dateFilter1">To Date</label>
+      <input type="date" id="dateFilter1" class="form-control">
     </div>
   </div>
 
@@ -96,6 +100,7 @@
     const yearDropdown = document.getElementById('yearDropdown');
     const sectionDropdown = document.getElementById('sectionDropdown');
     const dateFilter = document.getElementById('dateFilter');
+    const dateFilter1 = document.getElementById('dateFilter1');
     const joinByClassSwitch = document.getElementById('joinByClassSwitch'); // Switch element for joining records by class
     const detailedTable = document.getElementById('detailedTable');
     const summaryTable = document.getElementById('summaryTable');
@@ -105,16 +110,20 @@
       const year = yearDropdown.value;
       const section = sectionDropdown.value;
       const date = dateFilter.value;
+      const date1 = dateFilter1.value;
       const tableBody = document.getElementById('attendanceTable');
       tableBody.innerHTML = '';
 
       const filteredRecords = allRecords.filter(record => {
         const matchesYear = year === '' || record.YearOfStudy.toString() === year;
         const matchesSection = section === '' || record.Section === section;
-        const matchesDate = date === '' || new Date(record.Late_Date).toISOString().slice(0, 10) === date;
-        return matchesYear && matchesSection && matchesDate;
+        recordDate = new Date(record.Late_Date).toISOString().slice(0, 10)
+        const matchesDateRange = (date === '' && date1 === '') ||
+          (date !== '' && date1 === '' && recordDate >= date) ||
+          (date === '' && date1 !== '' && recordDate <= date1) ||
+          (date !== '' && date1 !== '' && recordDate >= date && recordDate <= date1);
+        return matchesYear && matchesSection && matchesDateRange;
       });
-
       if (joinByClassSwitch.checked) {
         detailedTable.classList.add('d-none');
         summaryTable.classList.remove('d-none');
@@ -135,6 +144,8 @@
         });
       }
     }
+
+
 
     function createSummaryTable(records) {
       summaryTableBody.innerHTML = '';
@@ -167,6 +178,7 @@
     });
     sectionDropdown.addEventListener('change', filterRecords);
     dateFilter.addEventListener('change', filterRecords);
+    dateFilter1.addEventListener('change', filterRecords);
     joinByClassSwitch.addEventListener('change', filterRecords);
   });
 </script>
