@@ -23,6 +23,30 @@ const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 
 
+const checkIfLoggedIn = (req, res, next) => {
+    const token = req.cookies.logintoken;
+    if (!token) {
+        req.isLoggedIn = false;
+        return next();
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, result) => {
+        if (err) {
+            req.isLoggedIn = false;
+        } else {
+            req.isLoggedIn = true;
+            req.user = { Reg_No: result.Reg_No, accessRole: result.Access_Role };
+        }
+        next();
+    });
+};
+
+// Provides Gloabal Variables that can be accessed in the ejs code
+app.use(checkIfLoggedIn);
+app.use((req, res, next) => {
+    res.locals.isAuthenticated = req.user ? true : false;
+    next();
+});
 
 const authenticateJWT = (allowedRoles = []) => {
     return (req, res, next) => {
@@ -77,25 +101,6 @@ const authenticateJWT = (allowedRoles = []) => {
 // req.isLoggedIn
 
 
-
-const checkIfLoggedIn = (req, res, next) => {
-    const token = req.cookies.logintoken;
-    if (!token) {
-        req.isLoggedIn = false;
-        return next();
-    }
-
-    jwt.verify(token, process.env.JWT_SECRET, (err, result) => {
-        if (err) {
-            req.isLoggedIn = false;
-        } else {
-            req.isLoggedIn = true;
-            req.user = { Reg_No: result.Reg_No, accessRole: result.Access_Role };
-        }
-        next();
-    });
-};
-
 //Database Connnection
 const mysql = require('mysql2');
 
@@ -121,11 +126,12 @@ app.set('layout', 'master');
 // For static css and js
 app.use(express.static('public'));
 
+
 // App routes start here
 
 app.get("/", (req, res) => {
     if (req.isLoggedIn) {
-        return res.render("dashboard", { title: "Dashboard" })
+        return res.redirect("/dashboard")
     };
     res.redirect("/login")
 
@@ -265,12 +271,42 @@ app.get('/dashboard', authenticateJWT([2, 3]), (req, res) => {
         });
     }
 });
+app.get('/api/hod-dashboard/daily', authenticateJWT([3]), (req, res) => {
+    const userRegNo = req.user.Reg_No;
+    const query = "SELECT * FROM staff_data WHERE Reg_No = ?";
+
+    db.query(query, [userRegNo], (err, result) => {
+        if (err) return res.status(500).json({ error: 'Error fetching staff data' });
+        if (result.length === 0) return res.status(404).json({ error: 'No data found' });
+
+        const dept = result[0].Department;
+
+        const dailyAttendanceQuery = `
+            SELECT 
+                DATE(Late_Date) AS lateDate,
+                Section,
+                YearOfStudy,
+                COUNT(*) AS lateCount
+            FROM student_absent_data a
+            JOIN student_data b ON a.Reg_No = b.Reg_No
+            WHERE b.Department = ?
+            AND Late_Date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+            GROUP BY lateDate, Section, YearOfStudy
+            ORDER BY YearOfStudy ASC, Section ASC, lateDate ASC;
+        `;
+
+        db.query(dailyAttendanceQuery, [dept], (err, results) => {
+            if (err) return res.status(500).json({ error: 'Error fetching daily attendance data' });
+            return res.json(results);
+        });
+    });
+});
 
 
 app.get('/login', checkIfLoggedIn, (req, res) => {
     if (req.isLoggedIn) {
         const redirectUrl = req.query.redirect || '/dashboard';
-        const msg = "You are already logged in. Redirected to dashboard ";
+        const msg = "You are already logged in";
         return res.redirect(`${redirectUrl}?msg=${encodeURIComponent(msg)}`);
     } else {
         const mesg = req.query.msg
@@ -578,7 +614,12 @@ app.get('/attendanceRecordsAll', authenticateJWT([3]), (req, res) => {
     });
 });
 
-
+app.get("/chart", (req, res) => {
+    // Send a HtML page
+    res.render('chart', { title: "Chart" });
+    // res.sendFile("chart.html")
+    // res.render("chart");
+})
 //Handle the 404
 app.all('*', (req, res) => {
     res.render('page404', { title: "404 Page" });

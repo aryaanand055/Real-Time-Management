@@ -1,8 +1,14 @@
 <% function getOrdinal(num) { const suffixes=["st" , "nd" , "rd" , "th" ,"th" ];return num+ suffixes[num -1]} %>
 <div class="container mt-5">
+  <h2 class="h2">Dashboard</h2>
+  <small class="text-muted">Classes with no late attendance recorded are not shown below</small>
 
-  <div class="container mt-5">
-    <h2>Attendance Records for <%= dept  %></h2>
+  <hr class="hr">
+
+  <!-- Records -->
+  <div class="card p-3">
+    <h3 class="h3">Attendance Records for <%= dept  %></h3>
+    <!-- Small detals -->
     <!-- <h4>Default date is set to the current date</h4> -->
     <div class="form-group row">
       <div class="col-md-4">
@@ -92,37 +98,75 @@
       </tbody>
     </table>
   </div>
-  <!-- <div class="row mt-4">
-    <% prevData.forEach(data=> {
-        const [title, count] = Object.entries(data)[0]; %>
-    <div class="col-md-4">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">
-            <%= title %>
-          </h5>
-          <p class="card-text">
-            <%= count %>
-          </p>
-        </div>
+
+
+  <hr class="hr">
+
+  <!-- Graphs -->
+  <div class="card p-3 ">
+    <h3 class="h3">Graph</h3>
+    <div class="row">
+
+      <div class="col-md-6">
+
+        <label for="yearDropdown1">Year of Study</label>
+        <select id="yearDropdown1" class="form-control">
+          <option value="0">All Years</option>
+          <%  const uniqueYears1 = records.reduce((acc, record) => {
+          if (!acc.includes(record.YearOfStudy)) {
+            acc.push(record.YearOfStudy);
+          }
+          return acc;
+        }, []);  
+        uniqueYears1.sort();
+        %>
+          <% uniqueYears1.forEach(year => { %>
+          <option value="<%= year %>">
+            <%= year %>
+          </option>
+          <% }); %>
+        </select>
+      </div>
+      <div class="col-md-6 mb-4">
+        <!-- Number of Days -->
+        <label for="daysDropdown1">Number of Days</label>
+        <select id="daysDropdown1" class="form-control">
+          <option value="7">Last 7 Days</option>
+          <option value="14">Last 14 Days</option>
+          <option value="30" selected>Last 30 Days</option>
+        </select>
       </div>
     </div>
-    <% }); %>
-  </div> -->
 
-  <h1>Graphs Here</h1>
-  <div class="mt-5">
-    <h3>Quick Student Lookup</h3>
-    <h6>Enter Student registration number for lookup on the details of the student</h6>
-    <form action="/fetchStudentDetails" method="GET" class="form-inline">
-      <input type="text" name="reg_no" class="form-control mb-2 mr-2 pr-3 pl-3" placeholder="Enter Registration Number" required>
-      <button type="submit" class="btn btn-primary mb-2">Search</button>
+    <div class="container" id="chartsContainer">
+      <canvas id="myChart"></canvas>
+    </div>
+  </div>
+
+
+
+  <hr class="hr">
+
+  <!-- Quick Student Lookup -->
+  <div class="card p-4">
+    <h3 class="h3 text-center mb-3">Quick Student Lookup</h3>
+    <p class="text-muted text-center mb-4">
+      Enter the student's registration number to quickly view their details.
+    </p>
+    <form action="/fetchStudentDetails" method="GET" class="d-flex justify-content-center">
+      <div class="btn-group w-auto mb-3" role="group">
+        <input type="text" name="reg_no" class="form-control form-control-lg rounded-0" placeholder="Registration Number" required>
+        <button type="submit" class="btn btn-primary btn-lg rounded-right">Search</button>
+      </div>
     </form>
   </div>
 
-  <div class="" style=" margin-bottom: 50px;">
-    <h3>Recent Activity (last 10)</h3>
-    <ul class="list-group">
+  <hr class="hr">
+
+  <!-- Recent Activity -->
+  <div class="card p-3" style=" margin-bottom: 70px;">
+    <h3 class="h3">Recent Activity (last 10)</h3>
+    <ul class="list-group list-group-flush">
       <% recentActivities.forEach(activity=> { %>
       <li class="list-group-item">
         <%= activity.Reg_No %> - <%= getOrdinal(activity.YearOfStudy) %> Year - <%= activity.Section %> - <%=
@@ -137,6 +181,8 @@
     </ul>
   </div>
 </div>
+
+<!-- Script for displaying records - Condensed and Detailed -->
 <script>
   const allRecords = <%- JSON.stringify(records) %>;
 
@@ -224,4 +270,136 @@
     filterRecords()
     joinByClassSwitch.addEventListener('change', filterRecords);
   });
+</script>
+
+<!-- Script for Graphs -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  const yearDropdown1 = document.getElementById("yearDropdown1")
+  const daysDropdown1 = document.getElementById("daysDropdown1")
+
+
+  function generateLastXDays(n) {
+    const dates = [];
+    const now = new Date();
+    for (let i = n - 1; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(now.getDate() - i);
+      date.setUTCHours(0, 0, 0, 0);
+      const formattedDate = date.toISOString().split('T')[0];
+      dates.push(formattedDate.slice(8, 10) + '-' + formattedDate.slice(5, 7));
+    }
+    return dates;
+  }
+
+  async function fetchDailyAttendance() {
+    const response = await fetch('/api/hod-dashboard/daily');
+    data = await response.json();
+    return data
+  }
+
+  function normalizeDate(dateString) {
+    const date = new Date(dateString);
+    date.setUTCMinutes(date.getUTCMinutes() - date.getTimezoneOffset());
+    date.setUTCHours(0, 0, 0, 0);
+    const formattedDate = date.toISOString().split('T')[0];
+    return formattedDate.slice(8, 10) + '-' + formattedDate.slice(5, 7); //Returns a DD-MM format
+  }
+
+  function processAttendanceData(data, class1) {
+    const groupedData = {};
+    const lastXDays = generateLastXDays(daysDropdown1.value);
+    data.forEach(record => {
+      if (record.YearOfStudy.toString() === class1 || class1 === "0") {
+        const key = `${record.YearOfStudy} - ${record.Section}`;
+        const normalizedRecordDate = normalizeDate(record.lateDate);
+
+        if (!groupedData[key]) {
+          groupedData[key] = {
+            counts: Array(lastXDays.length).fill(0)
+          };
+        }
+        const dateIndex = lastXDays.indexOf(normalizedRecordDate);
+        if (dateIndex !== -1) {
+          groupedData[key].counts[dateIndex] = record.lateCount;
+        }
+      }
+    });
+
+    return {
+      groupedData,
+      lastXDays
+    };
+  }
+
+  async function createDailyCharts() {
+    const dataFromAPI = await fetchDailyAttendance();
+
+    const {
+      groupedData,
+      lastXDays
+    } = processAttendanceData(dataFromAPI, yearDropdown1.value);
+    const chartContainer = document.getElementById('chartsContainer');
+    chartContainer.innerHTML = '';
+
+    const canvas = document.createElement('canvas');
+    chartContainer.appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+
+    const datasets = Object.keys(groupedData).map((key, index) => ({
+      label: key,
+      data: groupedData[key].counts,
+      borderColor: `hsl(${(index * 50) % 360}, 70%, 50%)`,
+      backgroundColor: `hsla(${(index * 50) % 360}, 70%, 50%, 0.2)`,
+      fill: false,
+      tension: 0.1
+    }));
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: lastXDays,
+        datasets: datasets
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            display: true
+          },
+        },
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Date'
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Count'
+            },
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1,
+              callback: function(value) {
+                return Number.isInteger(value) ? value : null;
+              }
+            },
+          },
+        }
+      }
+    });
+  }
+
+  createDailyCharts();
+
+  yearDropdown1.addEventListener("change", () => {
+    createDailyCharts();
+  })
+  daysDropdown1.addEventListener("change", () => {
+    createDailyCharts();
+  })
 </script>

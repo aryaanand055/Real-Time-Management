@@ -92,9 +92,9 @@
       row.addEventListener('click', function() {
         const detailsRow = this.nextElementSibling;
         if (detailsRow) {
-          // Displays table-row if cuurently none and vice verca
           detailsRow.style.display = detailsRow.style.display === 'table-row' ? 'none' : 'table-row';
         }
+        adjustFooter()
       });
     });
   });
