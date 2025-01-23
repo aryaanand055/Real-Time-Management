@@ -63,7 +63,7 @@
         <th>Name</th>
         <th>Year of Study</th>
         <th>Section</th>
-        <th>Date and Time</th>
+        <th>Date and Time <span id="dateSort" style="cursor: pointer;">&#x25B2;</span></th>
         <th>Reason</th>
       </tr>
     </thead>
@@ -97,55 +97,73 @@
   const allRecords = <%- JSON.stringify(records) %>;
 
   document.addEventListener('DOMContentLoaded', function() {
-    const yearDropdown = document.getElementById('yearDropdown');
-    const sectionDropdown = document.getElementById('sectionDropdown');
-    const dateFilter = document.getElementById('dateFilter');
-    const dateFilter1 = document.getElementById('dateFilter1');
-    const joinByClassSwitch = document.getElementById('joinByClassSwitch'); // Switch element for joining records by class
-    const detailedTable = document.getElementById('detailedTable');
-    const summaryTable = document.getElementById('summaryTable');
-    const summaryTableBody = document.getElementById('summaryTableBody');
+    const yearDropdown = document.getElementById('yearDropdown'),
+      sectionDropdown = document.getElementById('sectionDropdown'),
+      dateFilter = document.getElementById('dateFilter'),
+      dateFilter1 = document.getElementById('dateFilter1'),
+      joinByClassSwitch = document.getElementById('joinByClassSwitch'),
+      detailedTable = document.getElementById('detailedTable'),
+      summaryTable = document.getElementById('summaryTable'),
+      summaryTableBody = document.getElementById('summaryTableBody'),
+      tableBody = document.getElementById('attendanceTable');
+    let sortOrder = 'asc',
+      filteredRecords = allRecords; // Initialize with all records
+
+    const today = new Date();
+    dateFilter.value = new Date(Date.UTC(today.getFullYear(), today.getMonth(), 1)).toISOString().slice(0, 10);
+
+    filterRecords()
+
+    function sortRecordsByDate(records, order) {
+      return records.sort((a, b) => {
+        const dateA = new Date(a.Late_Date);
+        const dateB = new Date(b.Late_Date);
+        return order === 'asc' ? dateA - dateB : dateB - dateA;
+      });
+    }
+
+    function renderDetailedTable(records) {
+      detailedTable.classList.remove('d-none');
+      summaryTable.classList.add('d-none');
+      tableBody.innerHTML = '';
+      records.forEach(record => {
+        const row = `<tr>
+                      <td>${record.Reg_No}</td>
+                      <td>${record.Student_name}</td>
+                      <td>${record.YearOfStudy}</td>
+                      <td>${record.Section}</td>
+                      <td>${new Date(record.Late_Date).toLocaleDateString('en-GB', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+                      <td>${record.Reason}</td>
+                    </tr>`;
+        tableBody.insertAdjacentHTML('beforeend', row);
+      });
+    }
 
     function filterRecords() {
       const year = yearDropdown.value;
       const section = sectionDropdown.value;
       const date = dateFilter.value;
       const date1 = dateFilter1.value;
-      const tableBody = document.getElementById('attendanceTable');
-      tableBody.innerHTML = '';
 
-      const filteredRecords = allRecords.filter(record => {
+      filteredRecords = allRecords.filter(record => {
         const matchesYear = year === '' || record.YearOfStudy.toString() === year;
         const matchesSection = section === '' || record.Section === section;
-        recordDate = new Date(record.Late_Date).toISOString().slice(0, 10)
+        const recordDate = new Date(record.Late_Date).toISOString().slice(0, 10);
         const matchesDateRange = (date === '' && date1 === '') ||
           (date !== '' && date1 === '' && recordDate >= date) ||
           (date === '' && date1 !== '' && recordDate <= date1) ||
           (date !== '' && date1 !== '' && recordDate >= date && recordDate <= date1);
         return matchesYear && matchesSection && matchesDateRange;
       });
+
       if (joinByClassSwitch.checked) {
         detailedTable.classList.add('d-none');
         summaryTable.classList.remove('d-none');
         createSummaryTable(filteredRecords);
       } else {
-        detailedTable.classList.remove('d-none');
-        summaryTable.classList.add('d-none');
-        filteredRecords.forEach(record => {
-          const row = `<tr>
-                    <td>${record.Reg_No}</td>
-                    <td>${record.Student_name}</td>
-                    <td>${record.YearOfStudy}</td>
-                    <td>${record.Section}</td>
-                    <td>${new Date(record.Late_Date).toLocaleDateString('en-GB', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
-                    <td>${record.Reason}</td>
-                </tr>`;
-          tableBody.insertAdjacentHTML('beforeend', row);
-        });
+        renderDetailedTable(filteredRecords);
       }
     }
-
-
 
     function createSummaryTable(records) {
       summaryTableBody.innerHTML = '';
@@ -161,16 +179,22 @@
         acc[key].Count++;
         return acc;
       }, {});
-      const department = "<%= dept %>".toLocaleLowerCase();
-      Object.values(summary).forEach(record => {
-        const row = `<tr onclick="window.location.href = 'records/${department}/${record.YearOfStudy}/${record.Section}'" class="table_link" data-toggle="tooltip" data-placement="right" title="Click for detailed info" data-bs-original-title="Click for detailed info">
-        <td>${record.YearOfStudy}</td>
-        <td>${record.Section}</td>
-        <td>${record.Count}</td>
-      </tr>`;
+
+      for (const key in summary) {
+        const row = `<tr>
+                      <td>${summary[key].YearOfStudy}</td>
+                      <td>${summary[key].Section}</td>
+                      <td>${summary[key].Count}</td>
+                    </tr>`;
         summaryTableBody.insertAdjacentHTML('beforeend', row);
-      });
+      }
     }
+
+    document.getElementById('dateSort').addEventListener('click', () => {
+      sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+      const sortedRecords = sortRecordsByDate(filteredRecords, sortOrder);
+      renderDetailedTable(sortedRecords);
+    });
 
     yearDropdown.addEventListener('change', () => {
       sectionDropdown.disabled = yearDropdown.value === "";
@@ -180,5 +204,6 @@
     dateFilter.addEventListener('change', filterRecords);
     dateFilter1.addEventListener('change', filterRecords);
     joinByClassSwitch.addEventListener('change', filterRecords);
+    renderDetailedTable(filteredRecords);
   });
 </script>

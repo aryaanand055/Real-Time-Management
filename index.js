@@ -4,7 +4,7 @@ require('dotenv').config();
 const path = require("path")
 
 //Port for viewing on localhost
-const portToUse = 3000
+const portToUse = 3090
 
 //Express for handling routes
 const express = require('express');
@@ -116,16 +116,14 @@ db.connect(err => {
     console.log('MySQL Connected...');
 });
 
-
 // For the header and footer content
 const expressLayouts = require('express-ejs-layouts');
-const { access } = require('fs');
+
 app.use(expressLayouts);
 app.set('layout', 'master');
 
 // For static css and js
 app.use(express.static('public'));
-
 
 // App routes start here
 
@@ -215,7 +213,7 @@ app.get('/dashboard', authenticateJWT([2, 3]), (req, res) => {
             }
         });
     } else if (access_role === 2) {
-        //Tutor dashboard
+        //Tutor Dashboard
         const query = "SELECT * FROM staff_data WHERE Reg_No = ?";
         db.query(query, [userRegNo], (err, result) => {
             if (err) {
@@ -227,7 +225,6 @@ app.get('/dashboard', authenticateJWT([2, 3]), (req, res) => {
                 const dept = result[0].Department;
                 const YOS = result[0].YearOfClass;
                 const Sec = result[0].Section;
-
                 const attendanceQuery = `
                 SELECT 
                     COUNT(CASE WHEN DATE(Late_Date) = CURDATE() THEN 1 END) AS today,
@@ -249,7 +246,7 @@ app.get('/dashboard', authenticateJWT([2, 3]), (req, res) => {
                         FROM student_absent_data a, student_data b
                         WHERE a.Reg_No = B.Reg_No and Department = ? and b.YearOfStudy = ? and b.Section =?
                         ORDER BY Late_Date DESC
-                        limit 5
+                        limit 10
                         `;
 
                         db.query(recentActivityQuery, [dept, YOS, Sec], (err, recentActivities) => {
@@ -257,12 +254,35 @@ app.get('/dashboard', authenticateJWT([2, 3]), (req, res) => {
                                 console.error('Error fetching recent activity:', err);
                                 res.send('Error fetching recent activity');
                             } else {
-                                res.render('dashboard_tutor', {
-                                    title: "Home Page",
-                                    msg: mesg,
-                                    prevData: prevData,
-                                    recentActivities: recentActivities
+                                const dept = req.user.Dept
+                                const query = `
+                                        SELECT a.Reg_No, Late_Date, Student_name, Section, YearOfStudy, Reason
+                                        FROM student_absent_data a, student_data b
+                                        WHERE a.Reg_No = b.Reg_No
+                                        and b.Department = ? and b.YearOfStudy = ? and b.Section = ?
+                                        ORDER BY Late_Date DESC;
+                                    `;
+                                db.query(query, [dept, YOS, Sec], (err, records) => {
+                                    if (err) {
+                                        console.error('Error fetching attendance records:', err);
+                                        return res.status(500).send('Server error');
+                                    } else {
+                                        res.render('dashboard', {
+                                            title: "Dashboard",
+                                            tutor: true,
+                                            YOS: YOS,
+                                            section: Sec,
+                                            msg: mesg,
+                                            deptName: dept,
+                                            dept: dept,
+                                            prevData: prevData,
+                                            recentActivities: recentActivities,
+                                            records: records,
+                                        });
+
+                                    }
                                 });
+
                             }
                         });
                     }
@@ -271,17 +291,19 @@ app.get('/dashboard', authenticateJWT([2, 3]), (req, res) => {
         });
     }
 });
-app.get('/api/hod-dashboard/daily', authenticateJWT([3]), (req, res) => {
+app.get('/api/hod-dashboard/daily', authenticateJWT([2, 3]), (req, res) => {
     const userRegNo = req.user.Reg_No;
     const query = "SELECT * FROM staff_data WHERE Reg_No = ?";
-
     db.query(query, [userRegNo], (err, result) => {
         if (err) return res.status(500).json({ error: 'Error fetching staff data' });
         if (result.length === 0) return res.status(404).json({ error: 'No data found' });
 
         const dept = result[0].Department;
-
-        const dailyAttendanceQuery = `
+        const YOS = result[0].YearOfClass;
+        const Sec = result[0].Section;
+        // if YOS and Sec are null then it is HOD
+        if (!YOS && !Sec) {
+            const dailyAttendanceQuery = `
             SELECT 
                 DATE(Late_Date) AS lateDate,
                 Section,
@@ -294,11 +316,31 @@ app.get('/api/hod-dashboard/daily', authenticateJWT([3]), (req, res) => {
             GROUP BY lateDate, Section, YearOfStudy
             ORDER BY YearOfStudy ASC, Section ASC, lateDate ASC;
         `;
+            db.query(dailyAttendanceQuery, [dept], (err, results) => {
+                if (err) return res.status(500).json({ error: 'Error fetching daily attendance data' });
+                return res.json(results);
+            });
+        } else {
+            const dailyAttendanceQuery = `
+            SELECT 
+                DATE(Late_Date) AS lateDate,
+                Section,
+                YearOfStudy,
+                COUNT(*) AS lateCount
+            FROM student_absent_data a
+            JOIN student_data b ON a.Reg_No = b.Reg_No
+            WHERE b.Department = ? AND b.YearOfStudy = ? AND b.Section = ?
+            AND Late_Date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+            GROUP BY lateDate, Section, YearOfStudy
+            ORDER BY YearOfStudy ASC, Section ASC, lateDate ASC;
+        `;
+            db.query(dailyAttendanceQuery, [dept, YOS, Sec], (err, results) => {
+                if (err) return res.status(500).json({ error: 'Error fetching daily attendance data' });
+                return res.json(results);
+            });
+        }
 
-        db.query(dailyAttendanceQuery, [dept], (err, results) => {
-            if (err) return res.status(500).json({ error: 'Error fetching daily attendance data' });
-            return res.json(results);
-        });
+
     });
 });
 
@@ -543,8 +585,6 @@ app.get('/fetchStudentDetails', authenticateJWT([1, 2, 3]), (req, res) => {
     });
 });
 
-
-
 app.get('/fetch-student/:Reg_no', authenticateJWT([1, 2, 3]), (req, res) => {
     const regNo = req.params.Reg_no;
     const query = 'SELECT * FROM student_data WHERE Reg_no = ?';
@@ -602,7 +642,7 @@ app.get('/attendanceRecordsAll', authenticateJWT([3]), (req, res) => {
         FROM student_absent_data a, student_data b
         WHERE a.Reg_No = b.Reg_No
         and b.Department = ?
-        ORDER BY Late_Date DESC;
+        ORDER BY YearOfStudy, Section;
     `;
     db.query(query, [dept], (err, records) => {
         if (err) {
@@ -614,12 +654,6 @@ app.get('/attendanceRecordsAll', authenticateJWT([3]), (req, res) => {
     });
 });
 
-app.get("/chart", (req, res) => {
-    // Send a HtML page
-    res.render('chart', { title: "Chart" });
-    // res.sendFile("chart.html")
-    // res.render("chart");
-})
 //Handle the 404
 app.all('*', (req, res) => {
     res.render('page404', { title: "404 Page" });
