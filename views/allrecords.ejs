@@ -1,7 +1,8 @@
 <div class="container mt-5">
-  <h2>Attendance Records for <%= dept  %></h2>
+  <h2>Attendance Records for <%= title  %></h2>
 
   <div class="form-group row">
+    <% if (typeof specificClass === 'undefined') { %>
     <div class="col-md-3">
       <label for="yearDropdown">Year of Study</label>
       <select id="yearDropdown" class="form-control">
@@ -40,6 +41,8 @@
         <% }); %>
       </select>
     </div>
+    <% } %>
+
     <div class="col-md-3">
       <label for="dateFilter">From Date</label>
       <input type="date" id="dateFilter" class="form-control">
@@ -49,12 +52,14 @@
       <input type="date" id="dateFilter1" class="form-control">
     </div>
   </div>
+  <% if (typeof specificClass === 'undefined') { %>
 
   <label class="switch">
     <div class="font-weight-bold">Condensed view - </div>
     <input type="checkbox" id="joinByClassSwitch">
     <span for="joinByClassSwitch" class="slider round"></span>
   </label>
+  <% } %>
 
   <table class="table table-striped mt-4" id="detailedTable">
     <thead class="thead-dark">
@@ -70,7 +75,7 @@
     <tbody id="attendanceTable">
       <% records.forEach(record => { %>
       <tr>
-        <td><%= record.Reg_No %></td>
+        <td><%= record.Reg_no %></td>
         <td><%= record.Student_name %></td>
         <td><%= record.YearOfStudy %></td>
         <td><%= record.Section %></td>
@@ -80,6 +85,7 @@
       <% }); %>
     </tbody>
   </table>
+  <% if (typeof specificClass === 'undefined') { %>
 
   <table class="table table-striped mt-4 d-none" id="summaryTable">
     <thead class="thead-dark">
@@ -92,22 +98,26 @@
     <tbody id="summaryTableBody">
     </tbody>
   </table>
+  <% } %>
+
 </div>
 <script>
   const allRecords = <%- JSON.stringify(records) %>;
-
   document.addEventListener('DOMContentLoaded', function() {
+    <% if (typeof specificClass === 'undefined') { %>
     const yearDropdown = document.getElementById('yearDropdown'),
       sectionDropdown = document.getElementById('sectionDropdown'),
+      joinByClassSwitch = document.getElementById('joinByClassSwitch'),
+      summaryTableBody = document.getElementById('summaryTableBody');
+    <% } %>
+
+    const summaryTable = document.getElementById('summaryTable'),
       dateFilter = document.getElementById('dateFilter'),
       dateFilter1 = document.getElementById('dateFilter1'),
-      joinByClassSwitch = document.getElementById('joinByClassSwitch'),
       detailedTable = document.getElementById('detailedTable'),
-      summaryTable = document.getElementById('summaryTable'),
-      summaryTableBody = document.getElementById('summaryTableBody'),
       tableBody = document.getElementById('attendanceTable');
     let sortOrder = 'asc',
-      filteredRecords = allRecords; // Initialize with all records
+      filteredRecords = allRecords;
 
     const today = new Date();
     dateFilter.value = new Date(Date.UTC(today.getFullYear(), today.getMonth(), 1)).toISOString().slice(0, 10);
@@ -123,8 +133,10 @@
     }
 
     function renderDetailedTable(records) {
+      <% if (typeof specificClass === 'undefined') { %>
       detailedTable.classList.remove('d-none');
       summaryTable.classList.add('d-none');
+      <% } %>
       tableBody.innerHTML = '';
       records.forEach(record => {
         const row = `<tr>
@@ -140,8 +152,12 @@
     }
 
     function filterRecords() {
+      <% if (typeof specificClass === 'undefined') { %>
+
       const year = yearDropdown.value;
       const section = sectionDropdown.value;
+
+
       const date = dateFilter.value;
       const date1 = dateFilter1.value;
 
@@ -163,7 +179,24 @@
       } else {
         renderDetailedTable(filteredRecords);
       }
+      <% } else { %>
+      const date = dateFilter.value;
+      const date1 = dateFilter1.value;
+
+      filteredRecords = allRecords.filter(record => {
+        const recordDate = new Date(record.Late_Date).toISOString().slice(0, 10);
+        const matchesDateRange = (date === '' && date1 === '') ||
+          (date !== '' && date1 === '' && recordDate >= date) ||
+          (date === '' && date1 !== '' && recordDate <= date1) || (date !== '' && date1 !== '' && recordDate >= date && recordDate <= date1);
+        return matchesDateRange;
+      });
+
+      renderDetailedTable(filteredRecords);
+
+      <% } %>
+
     }
+    <% if (typeof specificClass === 'undefined') { %>
 
     function createSummaryTable(records) {
       summaryTableBody.innerHTML = '';
@@ -189,6 +222,7 @@
         summaryTableBody.insertAdjacentHTML('beforeend', row);
       }
     }
+    <% } %>
 
     document.getElementById('dateSort').addEventListener('click', () => {
       sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
@@ -196,14 +230,18 @@
       renderDetailedTable(sortedRecords);
     });
 
+    <% if (typeof specificClass === 'undefined') { %>
+
     yearDropdown.addEventListener('change', () => {
       sectionDropdown.disabled = yearDropdown.value === "";
       filterRecords();
     });
     sectionDropdown.addEventListener('change', filterRecords);
+    joinByClassSwitch.addEventListener('change', filterRecords);
+    <% } %>
+
     dateFilter.addEventListener('change', filterRecords);
     dateFilter1.addEventListener('change', filterRecords);
-    joinByClassSwitch.addEventListener('change', filterRecords);
     renderDetailedTable(filteredRecords);
   });
 </script>

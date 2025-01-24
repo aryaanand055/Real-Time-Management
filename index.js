@@ -17,7 +17,7 @@ const bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// For session memory for authentication 
+// Session memory for authentication 
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
@@ -344,7 +344,6 @@ app.get('/api/hod-dashboard/daily', authenticateJWT([2, 3]), (req, res) => {
     });
 });
 
-
 app.get('/login', checkIfLoggedIn, (req, res) => {
     if (req.isLoggedIn) {
         const redirectUrl = req.query.redirect || '/dashboard';
@@ -488,7 +487,6 @@ app.get("/records/dept", authenticateJWT([3]), (req, res) => {
     });
 });
 
-
 app.get("/records/:Dept/:Class/:Sec", authenticateJWT([2, 3]), (req, res) => {
 
     const userRegNo = req.user.Reg_No;
@@ -517,38 +515,41 @@ app.get("/records/:Dept/:Class/:Sec", authenticateJWT([2, 3]), (req, res) => {
         }
 
         const query = `
-            SELECT * FROM student_absent_data a JOIN student_data b ON a.Reg_no = b.Reg_no WHERE Department = ? AND YearOfStudy = ? AND Section = ?
+            SELECT * FROM student_absent_data a JOIN student_data b
+            ON a.Reg_No = b.Reg_No
+            WHERE Department = ? AND YearOfStudy = ? AND Section = ?
+            ORDER BY Late_Date DESC;
         `;
         db.query(query, [Dept, Class, Sec], (err, results) => {
             if (err) {
                 console.error('Error fetching records:', err);
                 return res.send('Error fetching records');
             }
-
-            const groupedStudents = results.reduce((acc, student) => {
-                if (!acc[student.Reg_no]) {
-                    acc[student.Reg_no] = {
-                        studentInfo: {
-                            Reg_no: student.Reg_no,
-                            Student_name: student.Student_name,
-                            Mob_no: student.Mob_no,
-                            Mail_Id: student.Mail_Id
-                        },
-                        countLate: 0,
-                        records: []
-                    };
-                }
-                acc[student.Reg_no].countLate++;
-                acc[student.Reg_no].records.push({
-                    Late_Date: new Date(student.Late_Date).toLocaleDateString("en-GB"),
-                    Late_Time: new Date(student.Late_Date).toLocaleTimeString("en-GB", { hour: '2-digit', minute: '2-digit' }),
-                    Reason: student.Reason
-                });
-                return acc;
-            }, {});
-            const resultArray = Object.values(groupedStudents);
-            const title = `${Dept} - ${Class}${Sec}`;
-            res.render('recordsPerClass', { students: resultArray, urlPar: [Dept, Class, Sec], title });
+            // const groupedStudents = results.reduce((acc, student) => {
+            //     if (!acc[student.Reg_no]) {
+            //         acc[student.Reg_no] = {
+            //             studentInfo: {
+            //                 Reg_no: student.Reg_no,
+            //                 Student_name: student.Student_name,
+            //                 Mob_no: student.Mob_no,
+            //                 Mail_Id: student.Mail_Id
+            //             },
+            //             countLate: 0,
+            //             records: []
+            //         };
+            //     }
+            //     acc[student.Reg_no].countLate++;
+            //     acc[student.Reg_no].records.push({
+            //         Late_Date: new Date(student.Late_Date).toLocaleDateString("en-GB"),
+            //         Late_Time: new Date(student.Late_Date).toLocaleTimeString("en-GB", { hour: '2-digit', minute: '2-digit' }),
+            //         Reason: student.Reason
+            //     });
+            //     return acc;
+            // }, {});
+            // const resultArray = Object.values(groupedStudents);
+            const title = `${Dept} - ${Class} ${Sec}`;
+            res.render('allrecords', { records: results, title: title, dept: Dept, Class: Class, Sec: Sec, specificClass: true });
+            // res.render('recordsPerClass', { students: resultArray, urlPar: [Dept, Class, Sec], title });
         });
     });
 });
@@ -659,6 +660,8 @@ app.all('*', (req, res) => {
     res.render('page404', { title: "404 Page" });
 })
 
+
+// Server running
 const PORT = process.env.PORT || portToUse;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

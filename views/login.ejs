@@ -1,5 +1,5 @@
 <div class="container main">
-  <img src="/psglogo.jpg" alt="Background" class="background-image">
+  <!-- <img src="/psglogo.jpg" alt="Background" class="background-image"> -->
   <!-- <div class="row large d-none d-lg-flex justify-content-center align-items-center ">
     <img src="/psglogo.jpg" alt="logo" class="logo position-relative w-100 h-100">
     <div class="row pt-5 position-absolute login-full z-6" id="loginFormCont">
@@ -42,23 +42,22 @@
 
   </div> -->
 
-  <div id="loginPage">
-    <div class="container" id="loginFormCont">
-      <form id="loginForm" class="d-flex flex-column align-items-center justify-content-center">
-        <div class="row input">
-          <label for="Reg_No" class="fw-bold fs-5">Registration Number:</label>
-          <input type="text" placeholder="715524104021" required class="input-box p-2 my-2 form-control " name="Reg_No" id="Reg_No">
-        </div>
-        <div class="row input">
-          <label for="password" class="fw-bold fs-5">Password:</label>
-          <input type="password" placeholder="Enter the Password" required class="input-box p-2 my-2 input form-control" name="password" id="password">
-        </div>
-        <div class="row  mt-4">
-          <button type="submit" class="submit btn btn-primary p-0 m-0">Login</button>
-        </div>
-        <div class="small">Login will expire in 1 hour</div>
-      </form>
-    </div>
+  <div class="container py-5">
+    <form id="loginForm" class="p-4 mx-auto border rounded shadow-lg" style="max-width: 500px; background: #ffffff;">
+      <h2 class="text-center text-primary fw-bold mb-4">Login</h2>
+      <div class="mb-4">
+        <label for="Reg_No" class="form-label fw-bold">Registration Number:</label>
+        <input type="text" placeholder="715524104021" required class="form-control p-2" name="Reg_No" id="Reg_No">
+      </div>
+      <div class="mb-4">
+        <label for="password" class="form-label fw-bold">Password:</label>
+        <input type="password" placeholder="Enter the Password" required class="form-control p-2" name="password" id="password">
+      </div>
+      <div class="mb-3">
+        <button type="submit" class="btn btn-outline-primary w-100">Login</button>
+      </div>
+      <div class="text-center text-secondary small">Login will expire in 1 hour</div>
+    </form>
   </div>
 </div>
 
