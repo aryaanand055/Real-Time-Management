@@ -625,11 +625,12 @@ app.post('/save-absence', authenticateJWT([1, 2, 3]), (req, res) => {
                 let dept = results1[0].Department
                 let sect = results1[0].Section
                 if (totalAbsences > 3) {
-                    msg = `Student ${name} from ${dept} ${sect} has exceeded the maximum allowed
-                    absences for the last month. Kindly inform his/her to meet his/her tutor from ${dept} of ${sect}`
+                    msg = `Student ${name} from ${dept} ${sect} has been late for ${totalAbsences} days in the last 30 days. Please inform the tutor.`
                 } else {
                     msg = `${name} from ${dept} ${sect} has been late for ${totalAbsences} days `
                 }
+                // msg = `Student ${name} from ${dept} ${sect} has been late for ${totalAbsences} days `
+
                 res.render('absenceFormSubmitted', { msg: msg, title: "Late attendance submitted" });
             })
         });
@@ -639,9 +640,9 @@ app.post('/save-absence', authenticateJWT([1, 2, 3]), (req, res) => {
 app.get('/attendanceRecordsAll', authenticateJWT([3]), (req, res) => {
     const dept = req.user.Dept
     const query = `
-        SELECT a.Reg_No, Late_Date, Student_name, Section, YearOfStudy, Reason
+        SELECT a.Reg_no, Late_Date, Student_name, Section, YearOfStudy, Reason
         FROM student_absent_data a, student_data b
-        WHERE a.Reg_No = b.Reg_No
+        WHERE a.Reg_no = b.Reg_no
         and b.Department = ?
         ORDER BY YearOfStudy, Section;
     `;

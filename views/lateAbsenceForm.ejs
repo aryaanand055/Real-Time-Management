@@ -1,38 +1,42 @@
-<h1 class="m-5"><span class="text-danger text-center">Fetch Student Data </span><span class="text-secondary"></span>and
-  </span><span class="text-primary">Absence</span></h1>
-<div class="container-fluid container">
+<div class="container">
 
-  <form id="absenceForm" method="POST">
-    <div class="form-group">
-      <label for="Reg_no">Registration Number:</label>
-      <div class="input-group mb-3">
-        <input type="text" id="Reg_no" name="Reg_no" required title="Input" class="form-control w-75" placeholder="Ex: 715524104021">
-        <button type="submit" class="btn btn-outline-primary w-25">Verify</button>
+  <h1 class="m-5"><span class="text-danger text-center">Fetch Student Data </span><span class="text-secondary"></span>and
+    </span><span class="text-primary">Absence</span></h1>
+  <div class="container-fluid container">
+
+    <form id="absenceForm" method="POST">
+      <div class="form-group">
+        <label for="Reg_no">Registration Number:</label>
+        <div class="input-group mb-3">
+          <input type="text" id="Reg_no" name="Reg_no" required title="Input" class="form-control w-75" placeholder="Ex: 715524104021">
+          <button type="submit" class="btn btn-outline-primary w-25">Verify</button>
+        </div>
+        <button type="button" id="restartScan" class="btn btn-secondary w-75 mx-5">
+          <i class="bi bi-qr-code-scan"></i> Reset and Scan Barcode
+        </button>
+        <div id="barcodeCont"></div>
       </div>
-      <button type="button" id="restartScan" class="btn btn-secondary w-75 mx-5">
-        <i class="bi bi-qr-code-scan"></i> Reset and Scan Barcode
-      </button>
-      <div id="barcodeCont"></div>
-    </div>
-  </form>
-
-  <div id="studentData" class="border-1 m-2 p-2">
-    <h2>Please verify the student information</h2>
-    <p><strong>Student Name:</strong> <span id="studentName"></span></p>
-    <p><strong>Department:</strong> <span id="department"></span></p>
-    <p><strong>Section:</strong> <span id="section"></span></p>
-    <p><strong>Mobile Number:</strong> <span id="mobNo"></span></p>
-    <p><strong>Email:</strong> <span id="mailId"></span></p>
-    <p><strong>Residence:</strong> <span id="residence"></span></p>
-
-    <form id="absenceReasonForm" method="POST" action="/save-absence">
-      <label for="reason"><strong>Reason for Absence:</strong></label>
-      <input type="text" id="reason" name="reason" required></input>
-      <input type="text" id="Reg_no2" name="Reg_no2" placeholder="Registration Number">
-      <button type="submit" class="btn btn-primary mt-3">Submit Absence</button>
     </form>
+
+    <div id="studentData" class="border-1 m-2 p-2">
+      <h2>Please verify the student information</h2>
+      <p><strong>Student Name:</strong> <span id="studentName"></span></p>
+      <p><strong>Department:</strong> <span id="department"></span></p>
+      <p><strong>Section:</strong> <span id="section"></span></p>
+      <p><strong>Mobile Number:</strong> <span id="mobNo"></span></p>
+      <p><strong>Email:</strong> <span id="mailId"></span></p>
+      <p><strong>Residence:</strong> <span id="residence"></span></p>
+
+      <form id="absenceReasonForm" method="POST" action="/save-absence">
+        <label for="reason"><strong>Reason for Absence:</strong></label>
+        <input type="text" id="reason" name="reason" required></input>
+        <input type="text" id="Reg_no2" name="Reg_no2" placeholder="Registration Number">
+        <button type="submit" class="btn btn-primary mt-3">Submit Absence</button>
+      </form>
+    </div>
   </div>
 </div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
 
 <script>
@@ -64,6 +68,7 @@
       document.getElementById('studentData').style.display = 'block';
       const box = document.querySelector('#barcodeCont');
       box.style.display = 'none';
+      adjustFooter()
 
     } catch (err) {
       console.error('Fetch error:', err);
@@ -102,6 +107,7 @@
 
     });
 
+
   }
 
   QuaggaInit()
@@ -114,6 +120,7 @@
     Quagga.stop();
     form.onsubmit(new Event('submit'));
     document.getElementById('reason').focus();
+    adjustFooter()
   });
 
   window.addEventListener('beforeunload', function() {
@@ -127,6 +134,16 @@
       video.style.height = 'auto';
     }
   })
+
+  const intervalId = setInterval(() => {
+    console.log("Running");
+    let count = document.getElementsByClassName("drawingBuffer").length;
+    if (count > 0) {
+      document.getElementsByClassName("drawingBuffer")[0].style.display = "none";
+      clearInterval(intervalId);
+    }
+  }, 10);
+
 
   function resetUI() {
     document.getElementById('Reg_no').value = '';
